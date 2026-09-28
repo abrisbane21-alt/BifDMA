@@ -139,4 +139,31 @@
     showToast();
     setInterval(showToast, 18000);
   }, 7000);
+
+  /* ---------- Bartholomew ---------- */
+  const zap = $("#zap");
+  let zapTimer;
+
+  function zapYou() {
+    if (!modal.hidden) closeModal();
+    zap.hidden = false;
+    // restart the flash/shake if he zaps you twice in a row
+    zap.style.animation = "none";
+    void zap.offsetWidth;
+    zap.style.animation = "";
+    clearTimeout(zapTimer);
+    zapTimer = setTimeout(() => { zap.hidden = true; }, 3200);
+  }
+
+  zap.addEventListener("click", () => { zap.hidden = true; });
+  document.querySelectorAll("[data-zap]").forEach((el) => el.addEventListener("click", zapYou));
+
+  // Secret: type "zap" anywhere on the page
+  let typed = "";
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !zap.hidden) { zap.hidden = true; return; }
+    if (e.key.length !== 1 || e.target.closest("input, textarea")) return;
+    typed = (typed + e.key.toLowerCase()).slice(-3);
+    if (typed === "zap") zapYou();
+  });
 })();

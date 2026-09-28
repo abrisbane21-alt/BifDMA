@@ -670,3 +670,62 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
   *, *::before, *::after { animation: none !important; transition: none !important; }
   html { scroll-behavior: auto; }
 }
+
+/* ---------- Bartholomew zap ---------- */
+:root { --zap: #5cc8ff; }
+.zap {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  text-align: center;
+  cursor: pointer;
+  background: radial-gradient(circle at 50% 45%, rgba(14, 52, 80, 0.95), rgba(3, 8, 20, 0.97) 70%);
+  animation: zap-flash 0.6s ease-out;
+}
+.zap[hidden] { display: none; }
+@keyframes zap-flash {
+  0% { background-color: rgba(230, 248, 255, 0.95); }
+  100% { background-color: transparent; }
+}
+.zap-inner { max-width: 900px; animation: zap-shake 0.45s linear 2; }
+.zap-bolt {
+  width: 110px;
+  height: 160px;
+  margin: 0 auto 12px;
+  filter: drop-shadow(0 0 12px var(--zap)) drop-shadow(0 0 30px var(--zap));
+}
+.zap-text {
+  margin: 0;
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: clamp(2rem, 6vw, 4.2rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 0 18px var(--zap), 0 0 40px var(--zap);
+}
+.zap-text span { color: var(--zap); }
+.zap-hint { margin: 18px 0 0; font-family: var(--font-mono); font-size: 0.8rem; color: #9fc7e0; }
+@keyframes zap-shake {
+  0%, 100% { transform: translate(0, 0) rotate(0); }
+  20% { transform: translate(-6px, 3px) rotate(-1deg); }
+  40% { transform: translate(5px, -4px) rotate(1deg); }
+  60% { transform: translate(-4px, -2px) rotate(0.5deg); }
+  80% { transform: translate(4px, 3px) rotate(-0.5deg); }
+}
+.box-zap { border-color: var(--zap); box-shadow: 0 0 10px rgba(92, 200, 255, 0.6); }
+.box-zap .tag { background: var(--zap); color: #02131f; }
+.box-zap .tag-sub { color: #cdeeff; }
+.chip-zap { color: var(--zap); background: rgba(92, 200, 255, 0.14); }
+.feature-zap { border-color: rgba(92, 200, 255, 0.35); }
+.feature-zap:hover { border-color: var(--zap); }
+.btn-zap {
+  margin-top: 16px;
+  background: transparent;
+  color: var(--zap);
+  border-color: rgba(92, 200, 255, 0.5);
+}
+.btn-zap:hover { border-color: var(--zap); box-shadow: 0 0 18px rgba(92, 200, 255, 0.4); }
