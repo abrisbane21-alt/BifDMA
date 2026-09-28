@@ -49,6 +49,8 @@
     "It's Forbidden. Everyone's cracked in Forbidden.",
     "I heard Kurt on the floor below. TV Station has thin floors.",
     "Other maps? Never heard of them.",
+    "It's not cheats, chat. It's Nova's Secret Sauce.",
+    "Every safe has a red in it if you believe hard enough.",
     "I spent all my Koen on audio upgrades.",
     "ACE would've caught it if it was cheats. Checkmate.",
     "Bartholomew told me where he was. Then he zapped me.",
@@ -96,10 +98,15 @@
     ["Out of stock.", "We sold the last one to a guy who swears he just has really good audio."],
     ["Nice try.", "If you wanted to pre-fire corners you could just… practice. Like bif. Allegedly."],
   ];
+  const sauceDeclines = [
+    ["Out of sauce.", "Nova already used the last jar. Every safe in Nova's stash had a red in it."],
+    ["Recipe locked.", "Nova's Secret Sauce is a secret. Also it isn't real. Nothing on this site is."],
+    ["Safe opened: it's empty.", "Turns out without the sauce, safes are just safes. (There is no sauce. This is a joke site.)"],
+  ];
   let lastFocus = null;
 
-  function openModal() {
-    const [title, body] = pick(declines, null);
+  function openModal(list) {
+    const [title, body] = pick(list, null);
     modalTitle.textContent = title;
     modalBody.textContent = body;
     lastFocus = document.activeElement;
@@ -113,7 +120,8 @@
     if (lastFocus) lastFocus.focus();
   }
 
-  document.querySelectorAll("[data-buy]").forEach((btn) => btn.addEventListener("click", openModal));
+  document.querySelectorAll("[data-buy]").forEach((btn) => btn.addEventListener("click", () => openModal(declines)));
+  document.querySelectorAll("[data-sauce]").forEach((btn) => btn.addEventListener("click", () => openModal(sauceDeclines)));
   modal.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closeModal));
   document.addEventListener("keydown", (e) => {
     if (e.key === "Escape" && !modal.hidden) closeModal();
@@ -129,6 +137,7 @@
     "A user named b*******r just renewed <b>Forbidden</b> (auto-pay).",
     "A guy camping a hallway in TV Station just bought <b>Lockdown</b>. He's still in the hallway.",
     "⚡ Bartholomew is nearby. He's gonna zap you.",
+    "Someone just added <b>Nova's Secret Sauce</b>. Every safe they open is red now.",
     "Someone just asked “is this real?” For the last time: no.",
   ];
   let toastIndex = 0;
