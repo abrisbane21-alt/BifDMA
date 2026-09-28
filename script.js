@@ -42,7 +42,14 @@
     "That's not tracking through smoke, I could hear him breathing.",
     "My teammate called it out. (I play solo.)",
     "I've played shooters since I was 3. My first word was 'prefire.'",
-    "The Red Keycard just… called out to me.",
+    "That red just… called out to me.",
+    "Bernard always sits there. Everybody knows Bernard sits there.",
+    "I check the Villa every raid. It's Doss Anthony's house, chat, I'm being polite.",
+    "Reds just spawn like that on Farm. Look it up.",
+    "It's Forbidden. Everyone's cracked in Forbidden.",
+    "I spent all my Koen on audio upgrades.",
+    "ACE would've caught it if it was cheats. Checkmate.",
+    "Bartholomew told me where he was. Then he zapped me.",
     "That second monitor is for Spotify, chat. Stop asking.",
     "Sound in this game is actually really good if you know how to listen.",
     "I just had a feeling. Gamer intuition.",
@@ -56,6 +63,8 @@
     "“is he cheating?”",
     "“how did you see him???”",
     "“report”",
+    "“ACE where are you”",
+    "“he knew Bernard was there before Bernard did”",
   ];
 
   const excuseEl = $("#excuse");
@@ -78,9 +87,10 @@
   const modalBody = $("#modal-body");
   const declines = [
     ["Payment declined: skill issue.", "BifDMA isn't real. There's nothing to buy and nothing to download."],
-    ["Checkout failed.", "bifsterr's chat already bought all of them. (Kidding. It's not real. None of this is real.)"],
+    ["Insufficient Koen.", "Go sell some reds first. (Kidding. Nothing here is for sale. This site is a joke.)"],
     ["Error 69: this website is a joke.", "There's no DMA, no checkout, and no Discord. Just vibes."],
-    ["Blocked by anti-cheat.", "Wow, it finally caught something. Unfortunately that something is a parody website."],
+    ["Blocked by ACE.", "Wow, it finally caught something. Unfortunately that something is a parody website."],
+    ["Payment zapped.", "Bartholomew got to your card first. He said his name, and then he zapped it."],
     ["Out of stock.", "We sold the last one to a guy who swears he just has really good audio."],
     ["Nice try.", "If you wanted to pre-fire corners you could just… practice. Like bif. Allegedly."],
   ];
@@ -111,11 +121,12 @@
   const toast = $("#toast");
   const toastText = $("#toast-text");
   const purchases = [
-    "Someone in Ohio just bought <b>Operator</b>. They were bad at the game anyway.",
+    "Someone in Ohio just bought <b>Forbidden</b>. They were bad at the game anyway.",
     "A guy named Kyle just bought <b>The Bif</b>. His reputation has been deducted.",
-    "Someone's little brother tried to buy <b>Scav</b> with mom's card. Declined.",
-    "A user named b*******r just renewed <b>Operator</b> (auto-pay).",
-    "A bush camper just bought <b>Scav</b>. He's still in the bush.",
+    "Someone's little brother tried to pay for <b>Lockdown</b> in Bonds. Declined.",
+    "A user named b*******r just renewed <b>Forbidden</b> (auto-pay).",
+    "A bush camper on Valley just bought <b>Lockdown</b>. He's still in the bush.",
+    "⚡ Bartholomew is nearby. He's gonna zap you.",
     "Someone just asked “is this real?” For the last time: no.",
   ];
   let toastIndex = 0;

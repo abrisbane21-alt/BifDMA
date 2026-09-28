@@ -719,9 +719,6 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 .box-zap { border-color: var(--zap); box-shadow: 0 0 10px rgba(92, 200, 255, 0.6); }
 .box-zap .tag { background: var(--zap); color: #02131f; }
 .box-zap .tag-sub { color: #cdeeff; }
-.chip-zap { color: var(--zap); background: rgba(92, 200, 255, 0.14); }
-.feature-zap { border-color: rgba(92, 200, 255, 0.35); }
-.feature-zap:hover { border-color: var(--zap); }
 .btn-zap {
   margin-top: 16px;
   background: transparent;
@@ -729,3 +726,61 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
   border-color: rgba(92, 200, 255, 0.5);
 }
 .btn-zap:hover { border-color: var(--zap); box-shadow: 0 0 18px rgba(92, 200, 255, 0.4); }
+.b5 { left: 34%; top: 8%; width: 6%; height: 12%; animation-delay: -1.9s; }
+
+/* Boss ESP list */
+.bosses {
+  list-style: none;
+  margin: 0 0 20px;
+  padding: 0;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.boss {
+  display: grid;
+  grid-template-columns: 110px 1fr auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--line);
+}
+.boss:last-child { border-bottom: 0; }
+.boss-map { font-family: var(--font-mono); font-size: 0.78rem; color: var(--muted); text-transform: uppercase; }
+.boss-name { font-weight: 600; }
+.boss-status {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--green);
+  background: var(--green-dim);
+  padding: 3px 8px;
+  border-radius: 6px;
+}
+.boss-zap { background: rgba(92, 200, 255, 0.06); }
+.boss-zap .boss-map,
+.boss-zap .boss-name { color: var(--zap); }
+.boss-zap .boss-status { color: var(--zap); background: rgba(92, 200, 255, 0.14); animation: pulse 1.6s ease-in-out infinite; }
+.bart {
+  padding: 24px;
+  border: 1px solid rgba(92, 200, 255, 0.35);
+  border-radius: var(--radius);
+  background: linear-gradient(180deg, rgba(92, 200, 255, 0.08), var(--panel) 60%);
+}
+.bart p { margin: 0; color: #c3ccd5; }
+.bart .bart-quote {
+  margin-top: 16px;
+  font-family: var(--font-head);
+  font-size: clamp(1.3rem, 3vw, 1.8rem);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--zap);
+}
+.review-zap { border-color: rgba(92, 200, 255, 0.35); }
+.review-zap blockquote { color: var(--zap); font-family: var(--font-head); font-size: 1.15rem; font-weight: 600; }
+
+@media (max-width: 620px) {
+  .boss { grid-template-columns: 1fr auto; row-gap: 4px; padding: 14px 16px; }
+  .boss-map { grid-column: 1 / -1; }
+}
