@@ -786,3 +786,32 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 }
 .boss-off .boss-name { color: var(--muted); font-weight: 500; }
 .boss-off .boss-status { color: var(--muted); background: rgba(255, 255, 255, 0.06); }
+
+/* ---------- Twitch / Discord ---------- */
+.live-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.live-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 28px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+.live-card h3 { font-size: 1.5rem; }
+.live-card p { margin: 0; flex: 1; color: var(--muted); }
+.live-card .btn { align-self: flex-start; margin-top: 10px; }
+.live-handle { font-family: var(--font-mono); font-size: 0.8rem; }
+.live-twitch { border-color: rgba(145, 70, 255, 0.45); background: linear-gradient(180deg, rgba(145, 70, 255, 0.12), var(--panel) 60%); }
+.live-twitch .live-handle { color: #bf94ff; }
+.live-discord { border-color: rgba(88, 101, 242, 0.45); background: linear-gradient(180deg, rgba(88, 101, 242, 0.12), var(--panel) 60%); }
+.live-discord .live-handle { color: #9aa3ff; }
+.btn-twitch { background: #9146ff; color: #fff; }
+.btn-twitch:hover { box-shadow: 0 0 22px rgba(145, 70, 255, 0.5); }
+.btn-discord { background: #5865f2; color: #fff; }
+.btn-discord:hover { box-shadow: 0 0 22px rgba(88, 101, 242, 0.5); }
+.footer-links { margin: 0; font-weight: 600; }
+
+@media (max-width: 760px) {
+  .live-grid { grid-template-columns: 1fr; }
+}
