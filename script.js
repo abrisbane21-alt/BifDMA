@@ -9,6 +9,22 @@
     return item;
   };
 
+  /* ---------- Mobile menu ---------- */
+  const nav = $(".nav");
+  const navToggle = $(".nav-toggle");
+
+  function setMenu(open) {
+    nav.classList.toggle("open", open);
+    navToggle.setAttribute("aria-expanded", String(open));
+    navToggle.setAttribute("aria-label", open ? "Close menu" : "Open menu");
+  }
+
+  navToggle.addEventListener("click", () => setMenu(!nav.classList.contains("open")));
+  nav.querySelectorAll(".nav-links a").forEach((a) => a.addEventListener("click", () => setMenu(false)));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && nav.classList.contains("open")) setMenu(false);
+  });
+
   /* ---------- Footer year ---------- */
   $("#year").textContent = new Date().getFullYear();
 

@@ -22,23 +22,30 @@
 </head>
 <body>
 
+  <a class="topbar" href="#games">
+    <span class="topbar-dot" aria-hidden="true"></span>
+    <span><b>Games with bif</b> — 25 gifted subs = 3 games</span>
+    <span class="topbar-cta">Details →</span>
+  </a>
+
   <header class="nav">
     <div class="container nav-inner">
       <a href="#" class="logo" aria-label="BifDMA home">
         <span class="logo-mark" aria-hidden="true"></span>
         <span>BIF<span class="accent">DMA</span></span>
       </a>
-      <nav class="nav-links" aria-label="Main">
+      <nav class="nav-links" id="nav-links" aria-label="Main">
         <a href="#features">Features</a>
         <a href="#bosses">Boss ESP</a>
         <a href="#excuses">Excuse Engine</a>
         <a href="#pricing">Pricing</a>
-        <a href="#games">Play with bif</a>
         <a href="#sauce">Secret Sauce</a>
         <a href="#reviews">Reviews</a>
         <a href="#faq">FAQ</a>
+        <a href="#games" class="nav-real">Play with bif</a>
       </nav>
       <button class="btn btn-primary btn-sm" data-buy>Buy Now</button>
+      <button class="nav-toggle" type="button" aria-label="Open menu" aria-expanded="false" aria-controls="nav-links"><span></span></button>
     </div>
   </header>
 
@@ -196,12 +203,13 @@
 
     <!-- BOSS ESP -->
     <section id="bosses" class="section section-alt">
-      <div class="container narrow">
+      <div class="container">
         <div class="section-head">
           <span class="kicker">// boss esp</span>
           <h2>Every boss in Forbidden TV.<br>Except one.</h2>
         </div>
-        <ul class="bosses">
+        <div class="bosses-wrap">
+          <ul class="bosses">
           <li class="boss">
             <span class="boss-map">TV Station</span>
             <span class="boss-name">Kurt <span class="muted">(the leader)</span></span>
@@ -228,7 +236,7 @@
             <span class="boss-status">UNTRACKABLE</span>
           </li>
         </ul>
-        <div class="bart">
+          <div class="bart">
           <p>
             <strong>Bartholomew</strong> isn't on any map. He isn't in the patch notes. ACE has never heard of him.
             BifDMA has scanned every raid on every difficulty and has never once seen him coming.
@@ -236,6 +244,7 @@
           </p>
           <p class="bart-quote">“My name is Bartholomew and I'm gonna zap you!”</p>
           <button class="btn btn-zap" data-zap>Test zap protection</button>
+        </div>
         </div>
       </div>
     </section>
@@ -309,36 +318,10 @@
             <button class="btn btn-ghost btn-block" data-buy>Become The Bif</button>
           </article>
         </div>
-      </div>
-    </section>
 
-    <!-- GAMES WITH BIF -->
-    <section id="games" class="section">
-      <div class="container">
-        <div class="games-card">
-          <div class="games-copy">
-            <span class="kicker kicker-twitch">// the only real deal on this site</span>
-            <h2>Games with bif</h2>
-            <p>Squad up with the man himself in Forbidden TV Station and find out if it's game sense from inside the same raid. Bring your own excuses.</p>
-          </div>
-          <div class="games-offer">
-            <div class="games-deal">
-              <div class="games-num"><strong>25</strong><span>gifted subs</span></div>
-              <span class="games-eq" aria-hidden="true">=</span>
-              <div class="games-num"><strong>3</strong><span>games with bif</span></div>
-            </div>
-            <a class="btn btn-twitch btn-block" href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">Gift subs on Twitch</a>
-            <p class="games-note">Sorted out live on bif's Twitch. No DMA included.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- NOVA'S SECRET SAUCE -->
-    <section id="sauce" class="section section-alt">
-      <div class="container sauce-wrap">
-        <div class="sauce-art" aria-hidden="true">
-          <svg class="sauce-jar" viewBox="0 0 160 240">
+        <div class="addon" id="sauce">
+          <div class="addon-art" aria-hidden="true">
+            <svg class="sauce-jar" viewBox="0 0 160 240">
             <defs>
               <linearGradient id="sauce-fill" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="0" stop-color="#ff5a74"/>
@@ -357,20 +340,21 @@
             <text x="80" y="168" text-anchor="middle" font-family="Chakra Petch, sans-serif" font-weight="700" font-size="11" fill="#ffffff" textLength="80" lengthAdjust="spacingAndGlyphs">SECRET SAUCE</text>
             <text x="80" y="181" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7" fill="#ff8da0" textLength="84" lengthAdjust="spacingAndGlyphs">100% REDS · 0% EXPLANATION</text>
           </svg>
-        </div>
-        <div class="sauce-copy">
-          <span class="kicker kicker-red">// premium add-on</span>
-          <h2>Nova's Secret Sauce™</h2>
-          <p class="sauce-lead">Finds every red on the map. Then puts a red in every single one of your safes. Nobody knows how. Nova isn't telling.</p>
-          <ul class="sauce-list">
+          </div>
+          <div class="addon-copy">
+            <span class="kicker kicker-red">// premium add-on</span>
+            <h3>Nova's Secret Sauce™</h3>
+            <p class="sauce-lead">Finds every red on the map. Then puts a red in every single one of your safes. Nobody knows how. Nova isn't telling.</p>
+            <ul class="sauce-list">
             <li><b>Red Finder</b> — every red on the map, highlighted through every wall, floor and ceiling of TV Station.</li>
             <li><b>Safe Spawner</b> — open a safe, get a red. Open another safe, get another red. Every. Single. Safe.</li>
             <li><b>Trophy Room Filler</b> — your whole display case, full of reds, by Tuesday.</li>
             <li><b>The recipe</b> — classified. Ingredients: 100% reds, 0% explanation.</li>
           </ul>
-          <div class="sauce-buy">
+          </div>
+          <div class="addon-buy">
             <div class="sauce-rate"><span>RED SPAWN RATE</span><strong>100%</strong></div>
-            <button class="btn btn-sauce" data-sauce>Add the Sauce</button>
+            <button class="btn btn-sauce btn-block" data-sauce>Add the Sauce</button>
           </div>
         </div>
       </div>
@@ -420,11 +404,13 @@
 
     <!-- FAQ -->
     <section id="faq" class="section section-alt">
-      <div class="container narrow">
-        <div class="section-head">
+      <div class="container faq-wrap">
+        <div class="faq-intro">
           <span class="kicker">// faq</span>
           <h2>Frequently Accused Questions</h2>
+          <p>Everything you wanted to know about BifDMA, Bartholomew and the sauce. Still not sure? Ask chat in the <a href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">Discord</a>. (Not for keys.)</p>
         </div>
+        <div class="faq-list">
         <details>
           <summary>Is this real?</summary>
           <p>No. It's a joke. There is no DMA, no download, and no checkout. (The one real thing here is <a href="#games">games with bif</a>, and that happens on his Twitch.) bifsterr doesn't make or sell cheats — his chat just really, really likes accusing him of using them.</p>
@@ -461,15 +447,41 @@
           <summary>I pre-fired someone through a wall with no cheats. Am I bif now?</summary>
           <p>Congratulations. Welcome to the game sense club. Your chat will now call you a cheater forever.</p>
         </details>
+        </div>
       </div>
     </section>
 
-    <!-- LIVE -->
-    <section id="live" class="section">
+    <!-- CTA -->
+    <section class="section cta">
+      <div class="container cta-inner">
+        <h2>Ready to be accused of cheating?</h2>
+        <p>Join the thousands of Operators who have been told “bro is walling” in the last 24 hours.</p>
+        <button class="btn btn-primary" data-buy>Get BifDMA</button>
+      </div>
+    </section>
+
+    <!-- THE REAL STUFF -->
+    <section id="community" class="section section-alt">
       <div class="container">
         <div class="section-head">
-          <span class="kicker">// see it live</span>
-          <h2>Don't take our word for it.</h2>
+          <span class="kicker kicker-twitch">// the real stuff</span>
+          <h2>Joke's over. Go hang out with bif.</h2>
+        </div>
+        <div class="games-card" id="games">
+          <div class="games-copy">
+            <span class="kicker kicker-twitch">// the only real deal on this site</span>
+            <h2>Games with bif</h2>
+            <p>Squad up with the man himself in Forbidden TV Station and find out if it's game sense from inside the same raid. Bring your own excuses.</p>
+          </div>
+          <div class="games-offer">
+            <div class="games-deal">
+              <div class="games-num"><strong>25</strong><span>gifted subs</span></div>
+              <span class="games-eq" aria-hidden="true">=</span>
+              <div class="games-num"><strong>3</strong><span>games with bif</span></div>
+            </div>
+            <a class="btn btn-twitch btn-block" href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">Gift subs on Twitch</a>
+            <p class="games-note">Sorted out live on bif's Twitch. No DMA included.</p>
+          </div>
         </div>
         <div class="live-grid">
           <article class="live-card live-twitch">
@@ -487,31 +499,42 @@
         </div>
       </div>
     </section>
-
-    <!-- CTA -->
-    <section class="section cta">
-      <div class="container cta-inner">
-        <h2>Ready to be accused of cheating?</h2>
-        <p>Join the thousands of Operators who have been told “bro is walling” in the last 24 hours.</p>
-        <button class="btn btn-primary" data-buy>Get BifDMA</button>
-      </div>
-    </section>
   </main>
 
   <footer class="footer">
-    <div class="container footer-inner">
-      <a href="#" class="logo" aria-label="BifDMA home">
-        <span class="logo-mark" aria-hidden="true"></span>
-        <span>BIF<span class="accent">DMA</span></span>
-      </a>
-      <p class="disclaimer">
-        <strong>This is a parody.</strong> BifDMA is a joke fan site made by bifsterr's community.
-        Apart from games with bif (which happen on his Twitch, not here), nothing on this page is real, nothing is for sale, and neither bifsterr nor Nova makes, sells, or uses cheats.
-        Not affiliated with bifsterr, Twitch, MoreFun Studios, or Arena Breakout: Infinite.
-        Cheating ruins games — go touch grass, then go touch the extract.
-      </p>
-      <p class="footer-links"><a href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">Twitch</a> · <a href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">Discord</a></p>
-      <p class="muted small">© <span id="year">2026</span> BifDMA. Made with 0% skill by chat. Psst: type “zap”.</p>
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <a href="#" class="logo" aria-label="BifDMA home">
+            <span class="logo-mark" aria-hidden="true"></span>
+            <span>BIF<span class="accent">DMA</span></span>
+          </a>
+          <p class="disclaimer">
+            <strong>This is a parody.</strong> BifDMA is a joke fan site made by bifsterr's community.
+            Apart from games with bif (which happen on his Twitch, not here), nothing on this page is real, nothing is for sale, and neither bifsterr nor Nova makes, sells, or uses cheats.
+            Not affiliated with bifsterr, Twitch, MoreFun Studios, or Arena Breakout: Infinite.
+            Cheating ruins games — go touch grass, then go touch the extract.
+          </p>
+        </div>
+        <div class="footer-col">
+          <p class="footer-title">BifDMA</p>
+          <a href="#features">Features</a>
+          <a href="#bosses">Boss ESP</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#sauce">Secret Sauce</a>
+          <a href="#faq">FAQ</a>
+        </div>
+        <div class="footer-col">
+          <p class="footer-title">bif</p>
+          <a href="#games">Play with bif</a>
+          <a href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">Twitch</a>
+          <a href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">Discord</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© <span id="year">2026</span> BifDMA. Made with 0% skill by chat.</p>
+        <p>Psst: type “zap”.</p>
+      </div>
     </div>
   </footer>
 
