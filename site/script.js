@@ -101,6 +101,103 @@
     countEl.textContent = (++used).toLocaleString();
   });
 
+  /* ---------- Chat reviews (real ones, via /api/reviews) ---------- */
+  const wall = $("#review-wall");
+  const reviewForm = $("#review-form");
+  const reviewStatus = $("#review-status");
+  const reviewText = reviewForm.elements.text;
+  const charCount = $("#char-count");
+  let wallReviews = [];
+
+  function make(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text !== undefined) node.textContent = text;
+    return node;
+  }
+
+  function timeAgo(iso) {
+    const secs = Math.max(0, (Date.now() - new Date(iso)) / 1000);
+    const units = [["y", 31536000], ["d", 86400], ["h", 3600], ["m", 60]];
+    for (const [unit, size] of units) {
+      if (secs >= size) return `${Math.floor(secs / size)}${unit} ago`;
+    }
+    return "just now";
+  }
+
+  function renderWall(newId) {
+    if (!wallReviews.length) {
+      wall.replaceChildren(make("p", "wall-empty", "No reviews yet. Be the first to get zapped."));
+      return;
+    }
+    wall.replaceChildren(...wallReviews.map((review) => {
+      const item = make("article", review.id === newId ? "wall-item is-new" : "wall-item");
+      const meta = make("div", "wall-meta");
+      const stars = make("span", "wall-stars", "★".repeat(review.stars));
+      stars.setAttribute("aria-label", `${review.stars} out of 5 stars`);
+      stars.append(make("span", "dim", "★".repeat(5 - review.stars)));
+      const when = make("time", "wall-when", timeAgo(review.at));
+      when.dateTime = review.at;
+      meta.append(stars, when);
+      item.append(meta, make("p", "wall-text", review.text), make("p", "wall-name", `— ${review.name}`));
+      return item;
+    }));
+  }
+
+  function setReviewStatus(message, kind) {
+    reviewStatus.textContent = message;
+    reviewStatus.className = kind ? `form-status ${kind}` : "form-status";
+  }
+
+  async function loadWall() {
+    try {
+      const res = await fetch("/api/reviews");
+      if (!res.ok) throw new Error(res.status);
+      wallReviews = (await res.json()).reviews;
+      renderWall();
+    } catch {
+      wall.replaceChildren(make("p", "wall-empty", "Couldn't load reviews right now. ACE is probably looking at them."));
+    }
+  }
+
+  reviewText.addEventListener("input", () => { charCount.textContent = reviewText.value.length; });
+
+  reviewForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(reviewForm));
+    data.stars = Number(data.stars);
+    if (reviewText.value.trim().length < 3) {
+      setReviewStatus("Write at least a few words.", "err");
+      reviewText.focus();
+      return;
+    }
+    const button = reviewForm.querySelector("button[type=submit]");
+    button.disabled = true;
+    setReviewStatus("Posting…");
+    try {
+      const res = await fetch("/api/reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Couldn't post that. Try again in a bit.");
+      if (out.review) {
+        wallReviews = [out.review, ...wallReviews.filter((r) => r.id !== out.review.id)];
+        renderWall(out.review.id);
+      }
+      reviewForm.reset();
+      charCount.textContent = "0";
+      setReviewStatus("Posted. Thanks for your totally honest review.", "ok");
+    } catch (err) {
+      setReviewStatus(err instanceof TypeError ? "Couldn't reach the review server. Try again in a bit." : err.message, "err");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  loadWall();
+
   /* ---------- Fake "recent purchase" toasts ---------- */
   const toast = $("#toast");
   const toastText = $("#toast-text");

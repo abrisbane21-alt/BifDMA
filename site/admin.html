@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Review admin — BifDMA</title>
+  <meta name="theme-color" content="#07090c">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <header class="nav">
+    <div class="container nav-inner">
+      <a href="index.html" class="logo" aria-label="BifDMA home">
+        <span class="logo-mark" aria-hidden="true"></span>
+        <span>BIF<span class="accent">DMA</span></span>
+      </a>
+      <a href="index.html#reviews" class="btn btn-ghost btn-sm nav-back">← Back to reviews</a>
+    </div>
+  </header>
+
+  <main class="section store">
+    <div class="container admin">
+      <div class="section-head">
+        <span class="kicker">// admin</span>
+        <h1 class="store-title">Review admin</h1>
+        <p class="store-sub">Delete reviews from the wall. You need the admin key saved in Netlify as <code>REVIEWS_ADMIN_KEY</code>.</p>
+      </div>
+
+      <form class="admin-bar" id="admin-form">
+        <label class="field">
+          <span class="field-label">Admin key</span>
+          <input type="password" name="key" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn-primary" type="submit">Load reviews</button>
+      </form>
+      <p class="form-status" id="admin-status" role="status"></p>
+      <div class="wall-list admin-wall" id="admin-wall"></div>
+    </div>
+  </main>
+
+  <script src="admin.js"></script>
+</body>
+</html>

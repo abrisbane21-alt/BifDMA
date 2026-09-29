@@ -399,6 +399,43 @@
             <figcaption>— Bartholomew (verified zapper)</figcaption>
           </figure>
         </div>
+
+        <div class="chat-reviews">
+          <form class="review-form" id="review-form" novalidate>
+            <h3>Leave a review</h3>
+            <p class="muted small">Goes straight onto the wall. Keep it about the game: links, contact details and slurs get blocked.</p>
+            <label class="field">
+              <span class="field-label">Name</span>
+              <input type="text" name="name" maxlength="30" placeholder="Anonymous Operator" autocomplete="nickname">
+            </label>
+            <fieldset class="field">
+              <legend class="field-label">Rating</legend>
+              <div class="star-input">
+                  <input type="radio" id="star5" name="stars" value="5" checked><label for="star5"><span aria-hidden="true">★</span><span class="sr-only">5 stars</span></label>
+                  <input type="radio" id="star4" name="stars" value="4"><label for="star4"><span aria-hidden="true">★</span><span class="sr-only">4 stars</span></label>
+                  <input type="radio" id="star3" name="stars" value="3"><label for="star3"><span aria-hidden="true">★</span><span class="sr-only">3 stars</span></label>
+                  <input type="radio" id="star2" name="stars" value="2"><label for="star2"><span aria-hidden="true">★</span><span class="sr-only">2 stars</span></label>
+                  <input type="radio" id="star1" name="stars" value="1"><label for="star1"><span aria-hidden="true">★</span><span class="sr-only">1 star</span></label>
+              </div>
+            </fieldset>
+            <label class="field">
+              <span class="field-label">Review</span>
+              <textarea name="text" maxlength="280" rows="4" required placeholder="Bought it, got zapped, 10/10."></textarea>
+              <span class="char-count"><span id="char-count">0</span>/280</span>
+            </label>
+            <div class="hp" aria-hidden="true">
+              <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+            <button class="btn btn-primary" type="submit">Post review</button>
+            <p class="form-status" id="review-status" role="status"></p>
+          </form>
+          <div class="chat-wall">
+            <h3>Fresh from chat</h3>
+            <div class="wall-list" id="review-wall">
+              <p class="wall-empty">Loading reviews…</p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
 

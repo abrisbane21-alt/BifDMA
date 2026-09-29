@@ -1,0 +1,8 @@
+{
+  "name": "bifdma",
+  "private": true,
+  "description": "Parody fan site for bifdma.org, plus the reviews API",
+  "dependencies": {
+    "@netlify/blobs": "^11.1.1"
+  }
+}
