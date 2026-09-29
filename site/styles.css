@@ -1212,3 +1212,7 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 .admin-delete { margin-top: 10px; border-color: rgba(255, 59, 92, 0.5); color: var(--red); }
 .admin-delete:hover { border-color: var(--red); color: var(--red); }
 .store-sub code { font-family: var(--font-mono); font-size: 0.9em; color: var(--text); }
+.star-hint { margin: 4px 0 0; font-size: 0.78rem; color: var(--muted); }
+.rating-fixed { color: var(--amber); letter-spacing: 1px; }
+#rating-modal .modal-icon { background: var(--amber); color: #1a1000; box-shadow: 0 0 24px rgba(255, 176, 32, 0.6); }
+#rating-modal .modal-card { border-color: rgba(255, 176, 32, 0.5); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(255, 176, 32, 0.4); }

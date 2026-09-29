@@ -28,8 +28,9 @@ http://localhost:8000. The reviews wall only works on Netlify, so locally it sho
 
 ## Reviews
 
-Anyone can post a review (name, 1–5 stars, up to 280 characters) and it shows on the wall straight
-away. The joke reviews above the wall are part of the page and never change.
+Anyone can post a review (name and up to 280 characters) and it shows on the wall straight away.
+Only 5-star reviews are allowed: picking fewer stars pops up a joke and resets the rating to 5, and
+the API refuses anything lower. The joke reviews above the wall are part of the page and never change.
 
 To keep the wall usable, the API:
 

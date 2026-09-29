@@ -417,6 +417,7 @@
                   <input type="radio" id="star2" name="stars" value="2"><label for="star2"><span aria-hidden="true">★</span><span class="sr-only">2 stars</span></label>
                   <input type="radio" id="star1" name="stars" value="1"><label for="star1"><span aria-hidden="true">★</span><span class="sr-only">1 star</span></label>
               </div>
+              <p class="star-hint">Only 5-star reviews are accepted. For quality reasons.</p>
             </fieldset>
             <label class="field">
               <span class="field-label">Review</span>
@@ -580,6 +581,18 @@
     <span class="toast-icon" aria-hidden="true">🛒</span>
     <span id="toast-text"></span>
     <button class="toast-close" id="toast-close" aria-label="Dismiss">×</button>
+  </div>
+
+  <!-- Rating rejected (anything under 5 stars) -->
+  <div class="modal" id="rating-modal" hidden>
+    <div class="modal-backdrop" data-close-rating></div>
+    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="rating-title">
+      <div class="modal-icon" aria-hidden="true">★</div>
+      <h3 id="rating-title">Rating rejected.</h3>
+      <p id="rating-body">BifDMA only accepts 5-star reviews.</p>
+      <p class="muted small">Your rating has been corrected to <span class="rating-fixed">★★★★★</span>. For quality reasons.</p>
+      <button type="button" class="btn btn-primary" data-close-rating>Fine, 5 stars</button>
+    </div>
   </div>
 
   <!-- Bartholomew -->

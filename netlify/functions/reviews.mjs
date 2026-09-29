@@ -75,8 +75,9 @@ async function addReview(req, context, store) {
   const text = clean(body.text, MAX_TEXT);
   const stars = Number(body.stars);
 
-  if (!Number.isInteger(stars) || stars < 1 || stars > 5) {
-    return json({ error: "Pick between 1 and 5 stars." }, 400);
+  // BifDMA only accepts 5-star reviews (the page also blocks lower ratings with a joke popup).
+  if (stars !== 5) {
+    return json({ error: "Only 5-star reviews are accepted. For quality reasons." }, 400);
   }
   if (text.length < MIN_TEXT) {
     return json({ error: "Write at least a few words." }, 400);

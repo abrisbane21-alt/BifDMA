@@ -162,6 +162,40 @@
 
   reviewText.addEventListener("input", () => { charCount.textContent = reviewText.value.length; });
 
+  // Only 5 stars allowed: picking fewer pops up a joke and puts it back to 5.
+  const ratingModal = $("#rating-modal");
+  const fiveStars = $("#star5");
+  const ratingJokes = {
+    1: ["1 star? Bold.", "Bartholomew has been notified. He's on his way. He's gonna zap you."],
+    2: ["2 stars detected.", "The Auto-Excuse Engine reviewed your rating and says it was lag."],
+    3: ["3 stars? That's a Lockdown rating.", "This is a Forbidden website."],
+    4: ["4 stars? So close.", "Nova added the missing star with a dash of Secret Sauce."],
+  };
+
+  function closeRatingModal() {
+    ratingModal.hidden = true;
+    document.body.style.overflow = "";
+    fiveStars.focus();
+  }
+
+  reviewForm.querySelectorAll('input[name="stars"]').forEach((input) => {
+    input.addEventListener("change", () => {
+      const stars = Number(input.value);
+      if (stars === 5) return;
+      const [title, body] = ratingJokes[stars];
+      $("#rating-title").textContent = title;
+      $("#rating-body").textContent = body;
+      fiveStars.checked = true;
+      ratingModal.hidden = false;
+      document.body.style.overflow = "hidden";
+      ratingModal.querySelector(".modal-card .btn").focus();
+    });
+  });
+  ratingModal.querySelectorAll("[data-close-rating]").forEach((el) => el.addEventListener("click", closeRatingModal));
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && !ratingModal.hidden) closeRatingModal();
+  });
+
   reviewForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(reviewForm));
