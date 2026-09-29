@@ -232,6 +232,102 @@
 
   loadWall();
 
+  /* ---------- Nova's Safe Simulator ---------- */
+  const safeBtn = $("#safe-btn");
+  const safeStage = $("#safe-stage");
+  const safeDial = safeBtn.querySelector(".safe-dial");
+  const safeAlert = $("#safe-alert");
+  const safeLoot = $("#safe-loot");
+  const safeMsg = $("#safe-msg");
+  const SAFE_KEY = "bifdma-safe";
+  const WHITE_CHANCE = 1 / 1000;
+  const redNames = [
+    "A red",
+    "Another red",
+    "Red (sauced)",
+    "Suspiciously convenient red",
+    "Red, again",
+    "Red with extra sauce",
+    "Red (Nova approved)",
+    "A red that wasn't there a second ago",
+  ];
+  const whiteNames = ["Used bandage", "Half a cracker", "Empty water bottle", "A single bolt", "Wet napkin"];
+  const safeLines = [
+    "Red. Obviously.",
+    "Red again. The sauce never misses.",
+    "It's always red.",
+    "Another one for the Trophy Room.",
+    "Chat is typing “is he cheating?”",
+    "Safe opened. Red inside. As expected.",
+  ];
+  const milestones = {
+    1: "Your first red. It won't be your last.",
+    10: "10 reds. Your Trophy Room is getting crowded.",
+    50: "50 reds. The Market is starting to ask questions.",
+    100: "100 reds. bif's chat has started clipping you.",
+    500: "500 reds. Red prices have crashed. Thanks, Nova.",
+    1000: "1,000 reds. ACE is watching. ACE is also clicking.",
+    5000: "5,000 reds. There aren't that many safes in TV Station. Keep going.",
+    10000: "10,000 reds. Nova is proud of you.",
+  };
+
+  const safe = { opened: 0, reds: 0, whites: 0 };
+  try { Object.assign(safe, JSON.parse(localStorage.getItem(SAFE_KEY)) || {}); } catch { /* storage blocked */ }
+  for (const key of Object.keys(safe)) {
+    if (!Number.isSafeInteger(safe[key]) || safe[key] < 0) safe[key] = 0;
+  }
+  let dialTurn = 0;
+  let alertTimer;
+
+  function renderSafe() {
+    $("#safe-reds").textContent = safe.reds.toLocaleString();
+    $("#safe-opened").textContent = safe.opened.toLocaleString();
+    $("#safe-whites").textContent = safe.whites.toLocaleString();
+    $("#safe-rate").textContent = safe.whites ? `${((safe.reds / safe.opened) * 100).toFixed(2)}%` : "100%";
+  }
+
+  function setLoot(tier, name, isWhite) {
+    safeLoot.classList.toggle("is-white", isWhite);
+    safeLoot.querySelector(".loot-tier").textContent = tier;
+    safeLoot.querySelector(".loot-name").textContent = name;
+  }
+
+  function floatLoot(text, isWhite) {
+    // Without animation the "+1 RED" bits would just pile up on the safe.
+    if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const bit = make("span", isWhite ? "float-loot white" : "float-loot", text);
+    bit.style.left = `calc(50% + ${Math.round(Math.random() * 120 - 60)}px)`;
+    safeStage.append(bit);
+    setTimeout(() => bit.remove(), 1000);
+  }
+
+  safeBtn.addEventListener("click", () => {
+    safe.opened += 1;
+    if (Math.random() < WHITE_CHANCE) {
+      safe.whites += 1;
+      setLoot("WHITE", pick(whiteNames), true);
+      floatLoot("+1 WHITE?!", true);
+      safeMsg.textContent = "A white item. In a safe. Nova has been informed.";
+      safeAlert.hidden = false;
+      clearTimeout(alertTimer);
+      alertTimer = setTimeout(() => { safeAlert.hidden = true; }, 4000);
+    } else {
+      safe.reds += 1;
+      setLoot("RED", pick(redNames), false);
+      floatLoot("+1 RED", false);
+      safeMsg.textContent = milestones[safe.reds] || pick(safeLines, safeMsg.textContent);
+    }
+    dialTurn += 137;
+    safeDial.style.transform = `rotate(${dialTurn}deg)`;
+    safeBtn.classList.remove("pop");
+    void safeBtn.offsetWidth; // restart the bounce
+    safeBtn.classList.add("pop");
+    renderSafe();
+    try { localStorage.setItem(SAFE_KEY, JSON.stringify(safe)); } catch { /* storage blocked */ }
+  });
+
+  renderSafe();
+
   /* ---------- Fake "recent purchase" toasts ---------- */
   const toast = $("#toast");
   const toastText = $("#toast-text");

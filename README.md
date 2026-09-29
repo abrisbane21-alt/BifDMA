@@ -15,7 +15,7 @@ The website is in `site/`. The reviews API is a Netlify Function in `netlify/fun
 | -------------------------------- | -------------------------------------------------------------------- |
 | `site/index.html`                | The main page (most of the jokes live here — edit freely)            |
 | `site/styles.css`                | Styling for every page                                               |
-| `site/script.js`                 | Excuse generator, mobile menu, reviews wall, toasts, Bartholomew zap |
+| `site/script.js`                 | Excuse generator, Safe Simulator, reviews wall, menu, toasts, zap    |
 | `site/buy.html`, `site/buy.js`   | Fake checkout page; every order ends in "Out of stock"               |
 | `site/admin.html`, `site/admin.js` | Private page for deleting reviews                                  |
 | `site/favicon.svg`, `site/og.png`| Tab icon and the preview image used when the link is shared          |

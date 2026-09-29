@@ -346,11 +346,12 @@
             <h3>Nova's Secret Sauce™</h3>
             <p class="sauce-lead">Finds every red on the map. Then puts a red in every single one of your safes. Nobody knows how. Nova isn't telling.</p>
             <ul class="sauce-list">
-            <li><b>Red Finder</b> — every red on the map, highlighted through every wall, floor and ceiling of TV Station.</li>
-            <li><b>Safe Spawner</b> — open a safe, get a red. Open another safe, get another red. Every. Single. Safe.</li>
-            <li><b>Trophy Room Filler</b> — your whole display case, full of reds, by Tuesday.</li>
-            <li><b>The recipe</b> — classified. Ingredients: 100% reds, 0% explanation.</li>
-          </ul>
+              <li><b>Red Finder</b> — every red on the map, highlighted through every wall, floor and ceiling of TV Station.</li>
+              <li><b>Safe Spawner</b> — open a safe, get a red. Open another safe, get another red. Every. Single. Safe.</li>
+              <li><b>Trophy Room Filler</b> — your whole display case, full of reds, by Tuesday.</li>
+              <li><b>The recipe</b> — classified. Ingredients: 100% reds, 0% explanation.</li>
+            </ul>
+            <a class="addon-link" href="#safe-sim">Try it free in Nova's Safe Simulator →</a>
           </div>
           <div class="addon-buy">
             <div class="sauce-rate"><span>RED SPAWN RATE</span><strong>100%</strong></div>
@@ -360,8 +361,56 @@
       </div>
     </section>
 
+    <!-- NOVA'S SAFE SIMULATOR -->
+    <section id="safe-sim" class="section">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker kicker-red">// minigame</span>
+          <h2>Nova's Safe Simulator</h2>
+          <p class="section-sub">Click the safe. It's a red. It's always a red. Powered by Nova's Secret Sauce™.</p>
+        </div>
+        <div class="safe-game">
+          <div class="safe-stage" id="safe-stage">
+            <div class="safe-alert" id="safe-alert" role="alert" hidden>⚠ White item found. Nova has been informed.</div>
+            <button class="safe" id="safe-btn" type="button" aria-label="Open a safe">
+              <svg viewBox="0 0 200 200" aria-hidden="true">
+                <rect x="10" y="10" width="180" height="180" rx="16" fill="#1b232d" stroke="#3a4656" stroke-width="4"/>
+                <rect x="28" y="28" width="144" height="144" rx="10" fill="#141b24" stroke="#2c3744" stroke-width="3"/>
+                <rect x="14" y="48" width="10" height="26" rx="3" fill="#3a4656"/>
+                <rect x="14" y="126" width="10" height="26" rx="3" fill="#3a4656"/>
+                <rect x="150" y="86" width="10" height="28" rx="4" fill="#ffcc4d"/>
+                <g class="safe-dial">
+                  <circle cx="100" cy="100" r="36" fill="#0f141b" stroke="#ff3b5c" stroke-width="4"/>
+                  <line x1="100" y1="70" x2="100" y2="80" stroke="#ff8da0" stroke-width="4" stroke-linecap="round"/>
+                  <line x1="130" y1="100" x2="124" y2="100" stroke="#5b6b7c" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="70" y1="100" x2="76" y2="100" stroke="#5b6b7c" stroke-width="3" stroke-linecap="round"/>
+                  <line x1="100" y1="130" x2="100" y2="124" stroke="#5b6b7c" stroke-width="3" stroke-linecap="round"/>
+                  <circle cx="100" cy="100" r="9" fill="#ff3b5c"/>
+                </g>
+                <text x="100" y="160" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="10" fill="#5b6b7c">SAUCED BY NOVA</text>
+              </svg>
+            </button>
+            <p class="safe-hint">Click the safe</p>
+          </div>
+          <div class="safe-panel">
+            <div class="safe-stats">
+              <div class="safe-stat safe-stat-main"><span>Reds found</span><strong id="safe-reds">0</strong></div>
+              <div class="safe-stat"><span>Safes opened</span><strong id="safe-opened">0</strong></div>
+              <div class="safe-stat"><span>Whites</span><strong id="safe-whites">0</strong></div>
+              <div class="safe-stat"><span>Red rate</span><strong id="safe-rate">100%</strong></div>
+            </div>
+            <div class="safe-loot" id="safe-loot">
+              <span class="loot-tier">SAFE</span>
+              <span class="loot-name">Click it. You know what's inside.</span>
+            </div>
+            <p class="safe-msg" id="safe-msg" aria-live="polite">Every safe has a red in it. That's just how safes work now.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
     <!-- REVIEWS -->
-    <section id="reviews" class="section">
+    <section id="reviews" class="section section-alt">
       <div class="container">
         <div class="section-head">
           <span class="kicker">// reviews</span>
@@ -441,7 +490,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="section section-alt">
+    <section id="faq" class="section">
       <div class="container faq-wrap">
         <div class="faq-intro">
           <span class="kicker">// faq</span>
@@ -560,6 +609,7 @@
           <a href="#bosses">Boss ESP</a>
           <a href="#pricing">Pricing</a>
           <a href="#sauce">Secret Sauce</a>
+          <a href="#safe-sim">Safe Simulator</a>
           <a href="#faq">FAQ</a>
         </div>
         <div class="footer-col">

@@ -1216,3 +1216,105 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 .rating-fixed { color: var(--amber); letter-spacing: 1px; }
 #rating-modal .modal-icon { background: var(--amber); color: #1a1000; box-shadow: 0 0 24px rgba(255, 176, 32, 0.6); }
 #rating-modal .modal-card { border-color: rgba(255, 176, 32, 0.5); box-shadow: 0 30px 80px rgba(0, 0, 0, 0.7), 0 0 40px -10px rgba(255, 176, 32, 0.4); }
+
+/* ---------- Nova's Safe Simulator ---------- */
+.section-sub { max-width: 40em; margin: 12px 0 0; color: var(--muted); }
+.addon-link { display: inline-block; margin-top: 12px; color: var(--red); font-weight: 600; }
+.safe-game { display: grid; grid-template-columns: 1fr 1.1fr; gap: 24px; align-items: stretch; }
+.safe-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  min-height: 380px;
+  padding: 32px;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 45%, rgba(255, 59, 92, 0.18), transparent 60%), var(--panel);
+  border: 1px solid rgba(255, 59, 92, 0.35);
+  border-radius: 20px;
+}
+.safe {
+  width: 240px;
+  max-width: 70%;
+  aspect-ratio: 1;
+  padding: 0;
+  background: none;
+  border: 0;
+  border-radius: 22px;
+  cursor: pointer;
+  transition: transform 0.08s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.safe svg { display: block; width: 100%; height: 100%; filter: drop-shadow(0 20px 30px rgba(0, 0, 0, 0.6)); }
+.safe:hover { transform: translateY(-2px); }
+.safe:active { transform: scale(0.97); }
+.safe:focus-visible { outline: 2px solid var(--green); outline-offset: 6px; }
+.safe.pop svg { animation: safe-pop 0.3s ease; }
+.safe-dial { transform-box: fill-box; transform-origin: center; transition: transform 0.25s ease; }
+@keyframes safe-pop {
+  30% { transform: scale(1.05) rotate(-2deg); }
+  60% { transform: scale(0.98) rotate(1deg); }
+}
+.safe-hint { margin: 0; font-family: var(--font-mono); font-size: 0.78rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.float-loot {
+  position: absolute;
+  top: 38%;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--font-head);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: var(--red);
+  text-shadow: 0 0 12px rgba(255, 59, 92, 0.7);
+  animation: float-up 0.9s ease-out forwards;
+}
+.float-loot.white { color: #e6edf3; text-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
+@keyframes float-up {
+  from { opacity: 1; transform: translate(-50%, 0) scale(1); }
+  to { opacity: 0; transform: translate(-50%, -90px) scale(1.15); }
+}
+.safe-alert {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 1;
+  padding: 10px 14px;
+  background: #e6edf3;
+  color: #0b0f14;
+  border-radius: 10px;
+  font-weight: 700;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  animation: pop 0.25s ease;
+}
+.safe-alert[hidden] { display: none; }
+.safe-panel { display: flex; flex-direction: column; gap: 16px; padding: 28px; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; }
+.safe-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.safe-stat { min-width: 0; padding: 14px; background: var(--bg-2); border: 1px solid var(--line); border-radius: 12px; }
+.safe-stat span { display: block; font-family: var(--font-mono); font-size: 0.7rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.safe-stat strong { display: block; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: var(--font-head); font-size: 1.5rem; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.safe-stat-main { grid-column: 1 / -1; border-color: rgba(255, 59, 92, 0.4); }
+.safe-stat-main strong { font-size: clamp(2.6rem, 6vw, 3.6rem); color: var(--red); }
+.safe-loot { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(255, 59, 92, 0.08); border: 1px solid rgba(255, 59, 92, 0.4); border-radius: 12px; }
+.loot-tier { flex: none; padding: 3px 8px; border-radius: 6px; background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; }
+.loot-name { font-weight: 600; }
+.safe-loot.is-white { background: rgba(230, 237, 243, 0.08); border-color: rgba(230, 237, 243, 0.5); }
+.safe-loot.is-white .loot-tier { background: #e6edf3; color: #0b0f14; }
+.safe-msg { min-height: 1.5em; margin: 0; color: var(--muted); }
+
+@media (max-width: 960px) {
+  .safe-game { grid-template-columns: 1fr; }
+  .safe-stage { min-height: 320px; }
+}
+
+@media (max-width: 620px) {
+  .safe-panel { padding: 20px; }
+  .safe-stats { gap: 8px; }
+  .safe-stat { padding: 12px 10px; }
+  .safe-stat span { font-size: 0.62rem; }
+  .safe-stat strong { font-size: 1.2rem; }
+  .safe-stat-main strong { font-size: 2.6rem; }
+}
