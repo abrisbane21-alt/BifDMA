@@ -1,7 +1,8 @@
 // Nova's Safe Simulator leaderboard, served at /api/safe.
 //   GET                                   top players by reds (?limit=, max 50)
-//   POST {action:"join", name, reds, whites}      claim a username; returns a secret token
-//   POST {action:"sync", id, token, seq, reds, whites}  add reds/whites found since the last sync
+//   POST {action:"join", name, reds, purples}     claim a username; returns a secret token
+//   POST {action:"sync", id, token, seq, reds, purples}  add reds/purples found since the last sync
+// The rare drop used to be a white item; records and requests that still say "whites" are read as purples.
 //   DELETE ?name=                         remove a player (needs the x-admin-key header)
 //
 // Clicks happen in the browser, so the server can't see them. To keep the board
@@ -17,7 +18,7 @@ const DEFAULT_LIMIT = 20;
 const MAX_PER_SEC = 20;
 const MAX_WINDOW_MS = 60_000;
 const JOIN_CARRY_REDS = 1000;
-const JOIN_CARRY_WHITES = 5;
+const JOIN_CARRY_PURPLES = 5;
 const JOIN_COOLDOWN_MS = 2 * 60_000;
 const NAME_PATTERN = /^[A-Za-z0-9 _.-]{2,20}$/;
 const ID_PATTERN = /^[a-f0-9]{16}$/;
@@ -57,7 +58,7 @@ async function getBoard(req, store) {
   const requested = Number(new URL(req.url).searchParams.get("limit")) || DEFAULT_LIMIT;
   const limit = Math.min(Math.max(requested, 1), BOARD_SIZE);
   const board = (await store.get("board", { type: "json" })) || { players: [] };
-  const players = board.players.slice(0, limit).map((p, i) => ({ rank: i + 1, name: p.name, reds: p.reds, whites: p.whites }));
+  const players = board.players.slice(0, limit).map((p, i) => ({ rank: i + 1, name: p.name, reds: p.reds, purples: purplesOf(p) }));
   return json({ players }, 200, {
     "Cache-Control": "public, max-age=0, must-revalidate",
     "Netlify-CDN-Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
@@ -89,14 +90,14 @@ async function join(body, context, store) {
   if (!claim.modified) return json({ error: "That name is taken. Try another one." }, 409);
 
   const localReds = toCount(body.reds);
-  const localWhites = toCount(body.whites);
+  const localPurples = toCount(body.purples ?? body.whites);
   const now = Date.now();
   const token = randomBytes(24).toString("base64url");
   const player = {
     id,
     name,
     reds: Math.min(localReds, JOIN_CARRY_REDS),
-    whites: Math.min(localWhites, JOIN_CARRY_WHITES),
+    purples: Math.min(localPurples, JOIN_CARRY_PURPLES),
     tokenHash: hash(token),
     lastSeq: 0,
     lastSyncAt: now,
@@ -116,7 +117,7 @@ async function join(body, context, store) {
     token,
     name,
     reds: player.reds,
-    whites: player.whites,
+    purples: player.purples,
     capped: localReds > player.reds,
     rank: rankOf(board, id),
   }, 201);
@@ -133,10 +134,11 @@ async function sync(body, store) {
     const current = await store.getWithMetadata(`player/${id}`, { type: "json" });
     if (!current) return json({ error: "Unknown player." }, 404);
     const player = current.data;
+    const purplesSoFar = purplesOf(player);
     if (hash(String(body.token || "")) !== player.tokenHash) return json({ error: "That isn't your name." }, 401);
     if (seq <= (player.lastSeq || 0)) {
       const board = await readBoard(store);
-      return json({ reds: player.reds, whites: player.whites, accepted: 0, duplicate: true, rank: rankOf(board, id) }, 200);
+      return json({ reds: player.reds, purples: purplesSoFar, accepted: 0, duplicate: true, rank: rankOf(board, id) }, 200);
     }
 
     // Accept at most MAX_PER_SEC finds per second since the last sync (window capped),
@@ -144,15 +146,16 @@ async function sync(body, store) {
     const now = Date.now();
     const elapsed = Math.min(Math.max(now - player.lastSyncAt, 0), MAX_WINDOW_MS);
     const budget = Math.floor((elapsed * MAX_PER_SEC) / 1000);
-    const whites = Math.min(toCount(body.whites), budget);
-    const reds = Math.min(toCount(body.reds), budget - whites);
+    const purples = Math.min(toCount(body.purples ?? body.whites), budget);
+    const reds = Math.min(toCount(body.reds), budget - purples);
 
-    const next = { ...player, reds: player.reds + reds, whites: player.whites + whites, lastSeq: seq, lastSyncAt: now };
+    const { whites: _oldField, ...rest } = player;
+    const next = { ...rest, reds: player.reds + reds, purples: purplesSoFar + purples, lastSeq: seq, lastSyncAt: now };
     const write = await store.setJSON(`player/${id}`, next, { onlyIfMatch: current.etag });
     if (!write.modified) continue; // another tab synced at the same time; retry
 
-    const board = reds || whites ? await updateBoard(store, next) : await readBoard(store);
-    return json({ reds: next.reds, whites: next.whites, accepted: reds + whites, rank: rankOf(board, id) }, 200);
+    const board = reds || purples ? await updateBoard(store, next) : await readBoard(store);
+    return json({ reds: next.reds, purples: next.purples, accepted: reds + purples, rank: rankOf(board, id) }, 200);
   }
   return json({ error: "Busy. Try again." }, 503);
 }
@@ -172,7 +175,7 @@ async function removePlayer(req, store, adminKey) {
 
 // Keeps the top BOARD_SIZE players in one blob so reading the board is a single request.
 async function updateBoard(store, player) {
-  const entry = { id: player.id, name: player.name, reds: player.reds, whites: player.whites, at: Date.now() };
+  const entry = { id: player.id, name: player.name, reds: player.reds, purples: purplesOf(player), at: Date.now() };
   return editBoard(store, (players) => {
     const others = players.filter((p) => p.id !== entry.id);
     const wasOnBoard = others.length !== players.length;
@@ -210,6 +213,10 @@ function rankOf(players, id) {
   if (!players) return null;
   const index = players.findIndex((p) => p.id === id);
   return index === -1 ? null : index + 1;
+}
+
+function purplesOf(record) {
+  return record.purples ?? record.whites ?? 0;
 }
 
 function nameKey(name) {

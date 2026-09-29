@@ -240,7 +240,7 @@
   const safeLoot = $("#safe-loot");
   const safeMsg = $("#safe-msg");
   const SAFE_KEY = "bifdma-safe";
-  const WHITE_CHANCE = 1 / 1000;
+  const PURPLE_CHANCE = 1 / 1000;
   const redNames = [
     "A red",
     "Another red",
@@ -251,7 +251,13 @@
     "Red (Nova approved)",
     "A red that wasn't there a second ago",
   ];
-  const whiteNames = ["Used bandage", "Half a cracker", "Empty water bottle", "A single bolt", "Wet napkin"];
+  const purpleNames = [
+    "A purple. Somehow.",
+    "Purple (unsauced)",
+    "A purple that should've been a red",
+    "Slightly disappointing purple",
+    "Mid-tier something",
+  ];
   const safeLines = [
     "Red. Obviously.",
     "Red again. The sauce never misses.",
@@ -271,8 +277,12 @@
     10000: "10,000 reds. Nova is proud of you.",
   };
 
-  const safe = { opened: 0, reds: 0, whites: 0 };
-  try { Object.assign(safe, JSON.parse(localStorage.getItem(SAFE_KEY)) || {}); } catch { /* storage blocked */ }
+  const safe = { opened: 0, reds: 0, purples: 0 };
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAFE_KEY)) || {};
+    // The rare drop used to be a white item; older saves call it "whites".
+    Object.assign(safe, { opened: saved.opened, reds: saved.reds, purples: saved.purples ?? saved.whites });
+  } catch { /* storage blocked */ }
   for (const key of Object.keys(safe)) {
     if (!Number.isSafeInteger(safe[key]) || safe[key] < 0) safe[key] = 0;
   }
@@ -282,20 +292,24 @@
   function renderSafe() {
     $("#safe-reds").textContent = safe.reds.toLocaleString();
     $("#safe-opened").textContent = safe.opened.toLocaleString();
-    $("#safe-whites").textContent = safe.whites.toLocaleString();
-    $("#safe-rate").textContent = safe.whites ? `${((safe.reds / safe.opened) * 100).toFixed(2)}%` : "100%";
+    $("#safe-purples").textContent = safe.purples.toLocaleString();
+    $("#safe-rate").textContent = safe.purples ? `${((safe.reds / safe.opened) * 100).toFixed(2)}%` : "100%";
   }
 
-  function setLoot(tier, name, isWhite) {
-    safeLoot.classList.toggle("is-white", isWhite);
+  function saveSafe() {
+    try { localStorage.setItem(SAFE_KEY, JSON.stringify(safe)); } catch { /* storage blocked */ }
+  }
+
+  function setLoot(tier, name, isPurple) {
+    safeLoot.classList.toggle("is-purple", isPurple);
     safeLoot.querySelector(".loot-tier").textContent = tier;
     safeLoot.querySelector(".loot-name").textContent = name;
   }
 
-  function floatLoot(text, isWhite) {
+  function floatLoot(text, isPurple) {
     // Without animation the "+1 RED" bits would just pile up on the safe.
     if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-    const bit = make("span", isWhite ? "float-loot white" : "float-loot", text);
+    const bit = make("span", isPurple ? "float-loot purple" : "float-loot", text);
     bit.style.left = `calc(50% + ${Math.round(Math.random() * 120 - 60)}px)`;
     safeStage.append(bit);
     setTimeout(() => bit.remove(), 1000);
@@ -303,12 +317,12 @@
 
   safeBtn.addEventListener("click", () => {
     safe.opened += 1;
-    const isWhite = Math.random() < WHITE_CHANCE;
-    if (isWhite) {
-      safe.whites += 1;
-      setLoot("WHITE", pick(whiteNames), true);
-      floatLoot("+1 WHITE?!", true);
-      safeMsg.textContent = "A white item. In a safe. Nova has been informed.";
+    const isPurple = Math.random() < PURPLE_CHANCE;
+    if (isPurple) {
+      safe.purples += 1;
+      setLoot("PURPLE", pick(purpleNames), true);
+      floatLoot("+1 PURPLE?!", true);
+      safeMsg.textContent = "A purple item. In a safe. Nova has been informed.";
       safeAlert.hidden = false;
       clearTimeout(alertTimer);
       alertTimer = setTimeout(() => { safeAlert.hidden = true; }, 4000);
@@ -324,9 +338,9 @@
     void safeBtn.offsetWidth; // restart the bounce
     safeBtn.classList.add("pop");
     renderSafe();
-    try { localStorage.setItem(SAFE_KEY, JSON.stringify(safe)); } catch { /* storage blocked */ }
+    saveSafe();
     if (player) {
-      if (isWhite) player.pendingWhites += 1;
+      if (isPurple) player.pendingPurples += 1;
       else player.pendingReds += 1;
       savePlayer();
       queueSync();
@@ -341,7 +355,7 @@
   const boardStatus = $("#board-status");
   const boardList = $("#board-list");
   const boardMe = $("#board-me");
-  // Once joined: { id, token, name, pendingReds, pendingWhites, seq, inflight }.
+  // Once joined: { id, token, name, pendingReds, pendingPurples, seq, inflight }.
   // inflight is the batch being sent; it keeps its number until the server confirms it.
   let player = null;
   let myScore = null;
@@ -355,11 +369,12 @@
   } else {
     const count = (n) => (Number.isSafeInteger(n) && n > 0 ? n : 0);
     player.pendingReds = count(player.pendingReds);
-    player.pendingWhites = count(player.pendingWhites);
+    player.pendingPurples = count(player.pendingPurples ?? player.pendingWhites);
+    delete player.pendingWhites;
     player.seq = count(player.seq);
     const batch = player.inflight;
     player.inflight = batch && count(batch.seq) > player.seq
-      ? { seq: batch.seq, reds: count(batch.reds), whites: count(batch.whites) }
+      ? { seq: batch.seq, reds: count(batch.reds), purples: count(batch.purples ?? batch.whites) }
       : null;
   }
 
@@ -373,6 +388,17 @@
   function setBoardStatus(message, kind) {
     boardStatus.textContent = message;
     boardStatus.className = kind ? `form-status ${kind}` : "form-status";
+  }
+
+  // Once joined, the leaderboard is the source of truth: "Reds found" shows the saved score
+  // plus any finds that haven't been sent yet, so the two numbers always match.
+  function matchServer(out) {
+    const inflight = player.inflight || { reds: 0, purples: 0 };
+    safe.reds = out.reds + player.pendingReds + inflight.reds;
+    safe.purples = (out.purples ?? 0) + player.pendingPurples + inflight.purples;
+    safe.opened = safe.reds + safe.purples;
+    saveSafe();
+    renderSafe();
   }
 
   function renderMe() {
@@ -424,17 +450,17 @@
     syncTimer = setTimeout(syncNow, 3000);
   }
 
-  // Sends the reds/whites found since the last sync. keepalive lets it finish while the page closes;
+  // Sends the reds/purples found since the last sync. keepalive lets it finish while the page closes;
   // force sends even with nothing new, to fetch the player's current score and rank.
   async function syncNow(keepalive = false, force = false) {
     clearTimeout(syncTimer);
     syncTimer = null;
     if (!player || syncing) return;
     if (!player.inflight) {
-      if (!player.pendingReds && !player.pendingWhites && !force) return;
-      player.inflight = { seq: player.seq + 1, reds: player.pendingReds, whites: player.pendingWhites };
+      if (!player.pendingReds && !player.pendingPurples && !force) return;
+      player.inflight = { seq: player.seq + 1, reds: player.pendingReds, purples: player.pendingPurples };
       player.pendingReds = 0;
-      player.pendingWhites = 0;
+      player.pendingPurples = 0;
       savePlayer();
     }
     const batch = player.inflight;
@@ -458,6 +484,7 @@
       player.seq = batch.seq;
       player.inflight = null;
       savePlayer();
+      matchServer(out);
       myScore = out.reds;
       myRank = out.rank;
       renderMe();
@@ -465,7 +492,7 @@
       // Keep the batch (same number) and send it again later.
     } finally {
       syncing = false;
-      if (player && (player.inflight || player.pendingReds || player.pendingWhites)) queueSync();
+      if (player && (player.inflight || player.pendingReds || player.pendingPurples)) queueSync();
     }
   }
 
@@ -483,17 +510,18 @@
       const res = await fetch("/api/safe", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "join", name, reds: safe.reds, whites: safe.whites, website: boardForm.elements.website.value }),
+        body: JSON.stringify({ action: "join", name, reds: safe.reds, purples: safe.purples, website: boardForm.elements.website.value }),
       });
       const out = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(out.error || "Couldn't join right now. Try again in a bit.");
-      player = { id: out.id, token: out.token, name: out.name, pendingReds: 0, pendingWhites: 0, seq: 0, inflight: null };
+      player = { id: out.id, token: out.token, name: out.name, pendingReds: 0, pendingPurples: 0, seq: 0, inflight: null };
       savePlayer();
+      matchServer(out);
       myScore = out.reds;
       myRank = out.rank;
       renderMe();
       setBoardStatus(out.capped
-        ? `You're on the board as ${out.name}. New players start with at most ${out.reds.toLocaleString()} reds (anti-sauce rules). Keep clicking.`
+        ? `You're on the board as ${out.name}. New players can bring at most ${out.reds.toLocaleString()} reds (anti-sauce rules), so your count starts there. Keep clicking.`
         : `You're on the board as ${out.name}. Keep clicking.`, "ok");
       loadBoard();
     } catch (err) {

@@ -1270,7 +1270,7 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
   text-shadow: 0 0 12px rgba(255, 59, 92, 0.7);
   animation: float-up 0.9s ease-out forwards;
 }
-.float-loot.white { color: #e6edf3; text-shadow: 0 0 12px rgba(255, 255, 255, 0.6); }
+.float-loot.purple { color: #b98bff; text-shadow: 0 0 12px rgba(169, 112, 255, 0.7); }
 @keyframes float-up {
   from { opacity: 1; transform: translate(-50%, 0) scale(1); }
   to { opacity: 0; transform: translate(-50%, -90px) scale(1.15); }
@@ -1282,8 +1282,8 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
   right: 16px;
   z-index: 1;
   padding: 10px 14px;
-  background: #e6edf3;
-  color: #0b0f14;
+  background: #a970ff;
+  color: #fff;
   border-radius: 10px;
   font-weight: 700;
   text-align: center;
@@ -1301,8 +1301,8 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 .safe-loot { display: flex; align-items: center; gap: 12px; padding: 14px 16px; background: rgba(255, 59, 92, 0.08); border: 1px solid rgba(255, 59, 92, 0.4); border-radius: 12px; }
 .loot-tier { flex: none; padding: 3px 8px; border-radius: 6px; background: var(--red); color: #fff; font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.06em; }
 .loot-name { font-weight: 600; }
-.safe-loot.is-white { background: rgba(230, 237, 243, 0.08); border-color: rgba(230, 237, 243, 0.5); }
-.safe-loot.is-white .loot-tier { background: #e6edf3; color: #0b0f14; }
+.safe-loot.is-purple { background: rgba(169, 112, 255, 0.1); border-color: rgba(169, 112, 255, 0.55); }
+.safe-loot.is-purple .loot-tier { background: #a970ff; color: #fff; }
 .safe-msg { min-height: 1.5em; margin: 0; color: var(--muted); }
 
 @media (max-width: 960px) {

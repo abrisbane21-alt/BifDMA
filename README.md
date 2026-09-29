@@ -55,6 +55,9 @@ Clicks happen in the browser, so the API limits how fast a score can grow:
 - one new name every 2 minutes from the same connection,
 - every sync is numbered, so a batch resent after the page closed is never counted twice.
 
+Once a player has joined, the "Reds found" counter on the page shows their leaderboard score (plus
+any clicks not sent yet), so the two always match. The rare 1-in-1,000 drop is a purple item.
+
 The board keeps the top 50 players; the page shows the top 20.
 
 ### Deleting reviews and removing names
