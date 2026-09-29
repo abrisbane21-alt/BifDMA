@@ -17,14 +17,16 @@ The website is in `site/`. The reviews API is a Netlify Function in `netlify/fun
 | `site/styles.css`                | Styling for every page                                               |
 | `site/script.js`                 | Excuse generator, Safe Simulator, reviews wall, menu, toasts, zap    |
 | `site/buy.html`, `site/buy.js`   | Fake checkout page; every order ends in "Out of stock"               |
-| `site/admin.html`, `site/admin.js` | Private page for deleting reviews                                  |
+| `site/admin.html`, `site/admin.js` | Private page for deleting reviews and leaderboard names           |
 | `site/favicon.svg`, `site/og.png`| Tab icon and the preview image used when the link is shared          |
 | `netlify/functions/reviews.mjs`  | Reviews API at `/api/reviews` (stores reviews in Netlify Blobs)      |
+| `netlify/functions/safe.mjs`     | Safe Simulator leaderboard API at `/api/safe`                        |
+| `netlify/lib/shared.mjs`         | Word filter and helpers used by both APIs                            |
 | `netlify.toml`, `package.json`   | Tells Netlify where the site and function are                        |
 
 To preview the pages locally, run `python3 -m http.server` inside `site/` and visit
-http://localhost:8000. The reviews wall only works on Netlify, so locally it shows
-"Couldn't load reviews right now".
+http://localhost:8000. The reviews wall and the leaderboard only work on Netlify, so locally
+they show a "couldn't load" message.
 
 ## Reviews
 
@@ -39,15 +41,32 @@ To keep the wall usable, the API:
 - silently drops posts from bots that fill in a hidden form field,
 - stores only a salted hash of the poster's IP address (for the rate limit), never the IP itself.
 
-### Deleting reviews
+## Safe Simulator leaderboard
+
+Players join with a username (2–20 characters, unique, same word filter as reviews; names like
+bif, bifsterr, Nova and Bartholomew are reserved). Joining gives the browser a secret key, so
+nobody else can post scores under that name. The key is saved in that browser, which is how the
+score keeps counting after you leave the site and come back.
+
+Clicks happen in the browser, so the API limits how fast a score can grow:
+
+- at most 20 reds per second of real time (unused time doesn't build up past a minute),
+- new players carry over at most 1,000 reds from before they joined,
+- one new name every 2 minutes from the same connection,
+- every sync is numbered, so a batch resent after the page closed is never counted twice.
+
+The board keeps the top 50 players; the page shows the top 20.
+
+### Deleting reviews and removing names
 
 1. In Netlify, open the site → **Site configuration** (may be called **Project configuration**) →
    **Environment variables** → **Add a variable**. Name it `REVIEWS_ADMIN_KEY` and set the value to a
    long password only you know. Then trigger a new deploy (**Deploys** → **Trigger deploy**).
-2. Go to `https://bifdma.org/admin.html`, enter that password, click **Load reviews**, and delete
-   whatever you want gone. Deleted reviews can take up to 15 seconds to disappear for everyone.
+2. Go to `https://bifdma.org/admin.html`, enter that password and click **Load**. Delete reviews or
+   remove leaderboard names from there. Changes can take up to 15 seconds to show for everyone.
+   A removed name becomes free for anyone to take.
 
-Until `REVIEWS_ADMIN_KEY` is set, nobody (including you) can delete reviews.
+Until `REVIEWS_ADMIN_KEY` is set, nobody (including you) can delete reviews or remove names.
 
 ## Putting it live on bifdma.org (Netlify + GoDaddy)
 

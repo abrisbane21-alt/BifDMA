@@ -303,7 +303,8 @@
 
   safeBtn.addEventListener("click", () => {
     safe.opened += 1;
-    if (Math.random() < WHITE_CHANCE) {
+    const isWhite = Math.random() < WHITE_CHANCE;
+    if (isWhite) {
       safe.whites += 1;
       setLoot("WHITE", pick(whiteNames), true);
       floatLoot("+1 WHITE?!", true);
@@ -324,9 +325,194 @@
     safeBtn.classList.add("pop");
     renderSafe();
     try { localStorage.setItem(SAFE_KEY, JSON.stringify(safe)); } catch { /* storage blocked */ }
+    if (player) {
+      if (isWhite) player.pendingWhites += 1;
+      else player.pendingReds += 1;
+      savePlayer();
+      queueSync();
+    }
   });
 
   renderSafe();
+
+  /* ---------- Safe Simulator leaderboard (via /api/safe) ---------- */
+  const PLAYER_KEY = "bifdma-safe-player";
+  const boardForm = $("#board-form");
+  const boardStatus = $("#board-status");
+  const boardList = $("#board-list");
+  const boardMe = $("#board-me");
+  // Once joined: { id, token, name, pendingReds, pendingWhites, seq, inflight }.
+  // inflight is the batch being sent; it keeps its number until the server confirms it.
+  let player = null;
+  let myScore = null;
+  let myRank = null;
+  let syncTimer = null;
+  let syncing = false;
+
+  try { player = JSON.parse(localStorage.getItem(PLAYER_KEY)); } catch { /* storage blocked */ }
+  if (!player || !/^[a-f0-9]{16}$/.test(player.id) || typeof player.token !== "string") {
+    player = null;
+  } else {
+    const count = (n) => (Number.isSafeInteger(n) && n > 0 ? n : 0);
+    player.pendingReds = count(player.pendingReds);
+    player.pendingWhites = count(player.pendingWhites);
+    player.seq = count(player.seq);
+    const batch = player.inflight;
+    player.inflight = batch && count(batch.seq) > player.seq
+      ? { seq: batch.seq, reds: count(batch.reds), whites: count(batch.whites) }
+      : null;
+  }
+
+  function savePlayer() {
+    try {
+      if (player) localStorage.setItem(PLAYER_KEY, JSON.stringify(player));
+      else localStorage.removeItem(PLAYER_KEY);
+    } catch { /* storage blocked */ }
+  }
+
+  function setBoardStatus(message, kind) {
+    boardStatus.textContent = message;
+    boardStatus.className = kind ? `form-status ${kind}` : "form-status";
+  }
+
+  function renderMe() {
+    boardForm.hidden = Boolean(player);
+    boardMe.hidden = !player;
+    if (!player) return;
+    $("#board-me-name").textContent = player.name;
+    $("#board-me-score").textContent = myScore === null ? "…" : myScore.toLocaleString();
+    $("#board-me-rank").textContent = myRank ? `#${myRank}` : myScore === null ? "…" : "50+";
+  }
+
+  function renderBoard(players) {
+    if (!players.length) {
+      boardList.replaceChildren(make("li", "board-empty", "Nobody yet. Join and take #1."));
+      return;
+    }
+    boardList.replaceChildren(...players.map((p) => {
+      const row = make("li", player && p.name === player.name ? "board-row is-me" : "board-row");
+      row.append(
+        make("span", `board-rank rank-${p.rank}`, `#${p.rank}`),
+        make("span", "board-name", p.name),
+        make("span", "board-reds", p.reds.toLocaleString()),
+      );
+      return row;
+    }));
+  }
+
+  async function loadBoard() {
+    try {
+      const res = await fetch("/api/safe");
+      if (!res.ok) throw new Error(res.status);
+      const { players } = await res.json();
+      renderBoard(players);
+      if (player) {
+        const me = players.find((p) => p.name === player.name);
+        if (me && (myScore === null || me.reds >= myScore)) {
+          myScore = me.reds;
+          myRank = me.rank;
+          renderMe();
+        }
+      }
+    } catch {
+      boardList.replaceChildren(make("li", "board-empty", "Couldn't load the leaderboard right now. Nova is looking into it."));
+    }
+  }
+
+  function queueSync() {
+    if (!player || syncTimer) return;
+    syncTimer = setTimeout(syncNow, 3000);
+  }
+
+  // Sends the reds/whites found since the last sync. keepalive lets it finish while the page closes;
+  // force sends even with nothing new, to fetch the player's current score and rank.
+  async function syncNow(keepalive = false, force = false) {
+    clearTimeout(syncTimer);
+    syncTimer = null;
+    if (!player || syncing) return;
+    if (!player.inflight) {
+      if (!player.pendingReds && !player.pendingWhites && !force) return;
+      player.inflight = { seq: player.seq + 1, reds: player.pendingReds, whites: player.pendingWhites };
+      player.pendingReds = 0;
+      player.pendingWhites = 0;
+      savePlayer();
+    }
+    const batch = player.inflight;
+    syncing = true;
+    try {
+      const res = await fetch("/api/safe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync", id: player.id, token: player.token, ...batch }),
+        keepalive,
+      });
+      if (res.status === 401 || res.status === 404) {
+        player = null;
+        savePlayer();
+        renderMe();
+        setBoardStatus("Your name was removed from the leaderboard. Join again with a new one.", "err");
+        return;
+      }
+      if (!res.ok) throw new Error(res.status);
+      const out = await res.json();
+      player.seq = batch.seq;
+      player.inflight = null;
+      savePlayer();
+      myScore = out.reds;
+      myRank = out.rank;
+      renderMe();
+    } catch {
+      // Keep the batch (same number) and send it again later.
+    } finally {
+      syncing = false;
+      if (player && (player.inflight || player.pendingReds || player.pendingWhites)) queueSync();
+    }
+  }
+
+  boardForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = boardForm.elements.name.value.trim();
+    if (name.length < 2) {
+      setBoardStatus("Pick a name with at least 2 characters.", "err");
+      return;
+    }
+    const button = boardForm.querySelector("button[type=submit]");
+    button.disabled = true;
+    setBoardStatus("Joining…");
+    try {
+      const res = await fetch("/api/safe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "join", name, reds: safe.reds, whites: safe.whites, website: boardForm.elements.website.value }),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Couldn't join right now. Try again in a bit.");
+      player = { id: out.id, token: out.token, name: out.name, pendingReds: 0, pendingWhites: 0, seq: 0, inflight: null };
+      savePlayer();
+      myScore = out.reds;
+      myRank = out.rank;
+      renderMe();
+      setBoardStatus(out.capped
+        ? `You're on the board as ${out.name}. New players start with at most ${out.reds.toLocaleString()} reds (anti-sauce rules). Keep clicking.`
+        : `You're on the board as ${out.name}. Keep clicking.`, "ok");
+      loadBoard();
+    } catch (err) {
+      setBoardStatus(err instanceof TypeError ? "Couldn't reach the leaderboard. Try again in a bit." : err.message, "err");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
+  // Send anything unsynced when the visitor leaves or switches tabs.
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") syncNow(true);
+  });
+  addEventListener("pagehide", () => syncNow(true));
+
+  renderMe();
+  loadBoard();
+  if (player) syncNow(false, true);
+  setInterval(() => { if (!document.hidden) loadBoard(); }, 20000);
 
   /* ---------- Fake "recent purchase" toasts ---------- */
   const toast = $("#toast");

@@ -5,6 +5,7 @@
   const form = $("#admin-form");
   const status = $("#admin-status");
   const list = $("#admin-wall");
+  const boardList = $("#admin-board");
   let adminKey = "";
 
   // Remember the key for this tab only, so a refresh doesn't ask again.
@@ -42,17 +43,55 @@
     }));
   }
 
+  function renderBoard(players) {
+    if (!players.length) {
+      boardList.replaceChildren(make("li", "board-empty", "Nobody on the leaderboard."));
+      return;
+    }
+    boardList.replaceChildren(...players.map((p) => {
+      const row = make("li", "board-row admin-board-row");
+      const del = make("button", "btn btn-ghost btn-sm admin-delete", "Remove");
+      del.type = "button";
+      del.addEventListener("click", () => removePlayer(p, row, del));
+      row.append(make("span", "board-rank", `#${p.rank}`), make("span", "board-name", p.name), make("span", "board-reds", p.reds.toLocaleString()), del);
+      return row;
+    }));
+  }
+
   async function load() {
     setStatus("Loading…");
     try {
-      // The timestamp skips the 15-second CDN cache so the list is current.
-      const res = await fetch(`/api/reviews?limit=200&fresh=${Date.now()}`);
-      if (!res.ok) throw new Error();
-      const { reviews } = await res.json();
+      // The timestamps skip the CDN cache so the lists are current.
+      const [reviewsRes, boardRes] = await Promise.all([
+        fetch(`/api/reviews?limit=200&fresh=${Date.now()}`),
+        fetch(`/api/safe?limit=50&fresh=${Date.now()}`),
+      ]);
+      if (!reviewsRes.ok || !boardRes.ok) throw new Error();
+      const { reviews } = await reviewsRes.json();
+      const { players } = await boardRes.json();
       render(reviews);
-      setStatus(`${reviews.length} review${reviews.length === 1 ? "" : "s"} loaded.`, "ok");
+      renderBoard(players);
+      setStatus(`${reviews.length} review${reviews.length === 1 ? "" : "s"} and ${players.length} leaderboard name${players.length === 1 ? "" : "s"} loaded.`, "ok");
     } catch {
-      setStatus("Couldn't load reviews. Is the site deployed on Netlify?", "err");
+      setStatus("Couldn't load. Is the site deployed on Netlify?", "err");
+    }
+  }
+
+  async function removePlayer(p, row, button) {
+    if (!confirm(`Remove ${p.name} from the leaderboard? Their name becomes free for anyone to take.`)) return;
+    button.disabled = true;
+    try {
+      const res = await fetch(`/api/safe?name=${encodeURIComponent(p.name)}`, {
+        method: "DELETE",
+        headers: { "x-admin-key": adminKey },
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Remove failed.");
+      row.remove();
+      setStatus(`Removed ${p.name}. It can take a few seconds to disappear for everyone.`, "ok");
+    } catch (err) {
+      button.disabled = false;
+      setStatus(err.message, "err");
     }
   }
 

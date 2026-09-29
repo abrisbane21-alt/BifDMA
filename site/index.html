@@ -406,6 +406,39 @@
             <p class="safe-msg" id="safe-msg" aria-live="polite">Every safe has a red in it. That's just how safes work now.</p>
           </div>
         </div>
+        <div class="safe-board">
+          <div class="board-card board-join">
+            <h3>Leaderboard</h3>
+            <p class="muted small">Ranked by reds found. Join with a username and your reds keep counting, even after you leave. Your spot is saved in this browser.</p>
+            <form class="board-form" id="board-form" novalidate>
+              <label class="field">
+                <span class="field-label">Username</span>
+                <input type="text" name="name" maxlength="20" autocomplete="nickname" placeholder="RedHunterKyle" required>
+              </label>
+              <div class="hp" aria-hidden="true">
+                <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+              </div>
+              <button class="btn btn-sauce" type="submit">Join</button>
+            </form>
+            <div class="board-me" id="board-me" hidden>
+              <p class="board-me-name">Playing as <strong id="board-me-name"></strong></p>
+              <div class="board-me-stats">
+                <div><span>Score</span><strong id="board-me-score">0</strong></div>
+                <div><span>Rank</span><strong id="board-me-rank">–</strong></div>
+              </div>
+            </div>
+            <p class="form-status" id="board-status" role="status"></p>
+          </div>
+          <div class="board-card">
+            <div class="board-head">
+              <h3>Top 20</h3>
+              <span class="muted small">Updates every few seconds</span>
+            </div>
+            <ol class="board-list" id="board-list">
+              <li class="board-empty">Loading the leaderboard…</li>
+            </ol>
+          </div>
+        </div>
       </div>
     </section>
 

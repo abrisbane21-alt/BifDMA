@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>Review admin — BifDMA</title>
+  <title>Admin — BifDMA</title>
   <meta name="theme-color" content="#07090c">
   <link rel="icon" href="favicon.svg" type="image/svg+xml">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -28,8 +28,8 @@
     <div class="container admin">
       <div class="section-head">
         <span class="kicker">// admin</span>
-        <h1 class="store-title">Review admin</h1>
-        <p class="store-sub">Delete reviews from the wall. You need the admin key saved in Netlify as <code>REVIEWS_ADMIN_KEY</code>.</p>
+        <h1 class="store-title">Admin</h1>
+        <p class="store-sub">Delete reviews and remove names from the Safe Simulator leaderboard. You need the admin key saved in Netlify as <code>REVIEWS_ADMIN_KEY</code>.</p>
       </div>
 
       <form class="admin-bar" id="admin-form">
@@ -37,10 +37,13 @@
           <span class="field-label">Admin key</span>
           <input type="password" name="key" autocomplete="current-password" required>
         </label>
-        <button class="btn btn-primary" type="submit">Load reviews</button>
+        <button class="btn btn-primary" type="submit">Load</button>
       </form>
       <p class="form-status" id="admin-status" role="status"></p>
+      <h2 class="admin-h2">Reviews</h2>
       <div class="wall-list admin-wall" id="admin-wall"></div>
+      <h2 class="admin-h2">Safe Simulator leaderboard</h2>
+      <ol class="board-list admin-board" id="admin-board"></ol>
     </div>
   </main>
 

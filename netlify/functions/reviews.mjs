@@ -5,7 +5,8 @@
 // Reviews are kept in Netlify Blobs, one blob per review.
 
 import { getStore } from "@netlify/blobs";
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { randomBytes } from "node:crypto";
+import { adminError, clean, hash, isBlocked, json } from "../lib/shared.mjs";
 
 const MAX_NAME = 30;
 const MAX_TEXT = 280;
@@ -14,18 +15,6 @@ const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 200;
 const COOLDOWN_MS = 60_000;
 const ID_PATTERN = /^\d{13}-[a-f0-9]{8}$/;
-
-// No links, emails or phone numbers: keeps out spam and people's personal details.
-const BLOCKED_PATTERNS = [
-  /https?:\/\//i,
-  /\bwww\./i,
-  /\b[a-z0-9-]+\.(?:com|net|org|gg|io|tv|ly|me|xyz)\b/i,
-  /[\w.+-]+@[\w-]+\.[\w.]+/,
-  /(?:\d[\s().-]?){10,}/,
-];
-// Slurs and self-harm taunts. Written as stems so common spellings are caught too.
-const BLOCKED_WORDS =
-  /\b(?:n[i1!|]gg\w*|f[a@4]gg?(?:[o0]ts?|s)?|r[e3]t[a@4]rd\w*|tr[a@4]nn(?:y|ies)|k[i1]kes?|sp[i1]cs?|ch[i1]nks?|kys)\b|kill\s+(?:yo)?ur\s*self/i;
 
 export default async (req, context) => {
   const store = getStore({ name: "reviews", consistency: "strong" });
@@ -106,45 +95,10 @@ async function addReview(req, context, store) {
 }
 
 async function deleteReview(req, store, adminKey) {
-  if (!adminKey) {
-    return json({ error: "Deleting is turned off. Set REVIEWS_ADMIN_KEY in Netlify to turn it on." }, 403);
-  }
-  if (!sameSecret(req.headers.get("x-admin-key") || "", adminKey)) {
-    return json({ error: "Wrong admin key." }, 401);
-  }
+  const denied = adminError(req, adminKey);
+  if (denied) return denied;
   const id = new URL(req.url).searchParams.get("id") || "";
   if (!ID_PATTERN.test(id)) return json({ error: "Unknown review." }, 400);
   await store.delete(`review/${id}`);
   return json({ deleted: id }, 200);
-}
-
-function clean(value, max) {
-  return String(value ?? "")
-    .replace(/[\u0000-\u001f\u007f]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, max);
-}
-
-function isBlocked(value) {
-  return BLOCKED_WORDS.test(value) || BLOCKED_PATTERNS.some((pattern) => pattern.test(value));
-}
-
-// IPs are only kept as a salted hash, for the one-review-a-minute limit.
-function hash(value) {
-  const salt = process.env.REVIEWS_SALT || "bifdma";
-  return createHash("sha256").update(`${salt}:${value}`).digest("hex").slice(0, 32);
-}
-
-function sameSecret(given, expected) {
-  const a = createHash("sha256").update(given).digest();
-  const b = createHash("sha256").update(expected).digest();
-  return timingSafeEqual(a, b);
-}
-
-function json(data, status, headers = {}) {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: { "Content-Type": "application/json; charset=utf-8", ...headers },
-  });
 }
