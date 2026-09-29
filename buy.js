@@ -21,11 +21,12 @@
       soldOut: "There's only one bif, and he isn't for sale.",
     },
   };
-  const payNames = { koen: "Koen", bonds: "Bonds", vibes: "Vibes" };
+  const payNames = { koen: "Koen", bonds: "Bonds", reds: "Reds", subs: "Subs" };
   const payNotes = {
     koen: "",
     bonds: " Also, we don't take Bonds. Keep your Bonds.",
-    vibes: " Your vibes were accepted. It's still out of stock.",
+    reds: " We'd take your reds, but Nova's Secret Sauce put one in every safe, so they're worthless now.",
+    subs: " Subs don't buy DMAs. 25 gifted subs do get you 3 games with bif, though.",
   };
   const extras = [
     "Someone in Ohio bought the last one 0.2 seconds before you clicked.",

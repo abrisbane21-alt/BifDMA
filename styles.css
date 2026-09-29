@@ -1134,6 +1134,6 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
   .opt { grid-template-columns: auto 1fr; gap: 6px 14px; padding: 16px; }
   .opt-price { grid-column: 2; text-align: left; font-size: 1.2rem; }
   .opt-price small { display: inline; margin-left: 4px; }
-  .pay-options { display: grid; grid-template-columns: repeat(3, 1fr); }
+  .pay-options { display: grid; grid-template-columns: repeat(2, 1fr); }
   .pay { justify-content: center; padding: 12px 8px; }
 }
