@@ -588,11 +588,31 @@
   }
   track("view");
 
-  /* ---------- Clips (added by admins, via /api/clips) ---------- */
-  const clipsGrid = $("#clips-grid");
+  /* ---------- Killcam clips (added by admins, via /api/clips) ---------- */
+  const clipsSection = $("#clips");
+  const replayScreen = $("#replay-screen");
+  const replayList = $("#replay-list");
+  const verdicts = [
+    "definitely just audio",
+    "crosshair placement (allegedly)",
+    "game sense, according to bif",
+    "inconclusive. ACE is still reviewing",
+    "chat says walls, bif says headset",
+    "Bartholomew was involved",
+    "Nova's Secret Sauce detected",
+  ];
+  let clips = [];
+  let current = 0;
 
   function exhibit(index) {
     return index < 26 ? String.fromCharCode(65 + index) : String(index + 1);
+  }
+
+  // Same clip, same verdict, every visit.
+  function verdictFor(clip) {
+    let n = 0;
+    for (const ch of clip.id) n = (n * 31 + ch.charCodeAt(0)) >>> 0;
+    return verdicts[n % verdicts.length];
   }
 
   // Twitch needs to know which site is embedding the clip.
@@ -602,52 +622,80 @@
       : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(clip.videoId)}?autoplay=1`;
   }
 
-  function renderClips(clips) {
-    if (!clips.length) {
-      clipsGrid.replaceChildren(make("p", "clips-empty", "No clips yet. The admins are still gathering evidence."));
+  function playClip() {
+    const clip = clips[current];
+    const frame = make("iframe", "replay-frame");
+    frame.src = embedUrl(clip);
+    frame.title = clip.title;
+    frame.allow = "autoplay; fullscreen; encrypted-media; picture-in-picture";
+    frame.allowFullscreen = true;
+    replayScreen.replaceChildren(frame);
+  }
+
+  // Shows a clip in the player. The video itself only loads when someone presses play.
+  function showClip(index, autoplay) {
+    current = index;
+    const clip = clips[index];
+    $("#replay-exhibit").textContent = `EXHIBIT ${exhibit(index)}`;
+    $("#replay-source").textContent = clip.source === "twitch" ? "TWITCH" : "YOUTUBE";
+    $("#replay-verdict").textContent = verdictFor(clip);
+    replayList.querySelectorAll(".replay-item").forEach((item, i) => {
+      item.classList.toggle("is-active", i === index);
+      if (i === index) item.setAttribute("aria-current", "true");
+      else item.removeAttribute("aria-current");
+    });
+    if (autoplay) {
+      playClip();
       return;
     }
-    clipsGrid.replaceChildren(...clips.map((clip, i) => {
-      const card = make("article", "clip");
-      // The player only loads when someone presses play, so the page stays fast.
-      const play = make("button", `clip-play clip-${clip.source}`);
-      play.type = "button";
-      play.setAttribute("aria-label", `Play clip: ${clip.title}`);
-      if (clip.source === "youtube") {
-        const thumb = make("img", "clip-thumb");
-        thumb.src = `https://i.ytimg.com/vi/${encodeURIComponent(clip.videoId)}/hqdefault.jpg`;
-        thumb.alt = "";
-        thumb.loading = "lazy";
-        play.append(thumb);
-      }
-      play.append(make("span", "clip-play-icon", "▶"));
-      play.addEventListener("click", () => {
-        const frame = make("iframe", "clip-frame");
-        frame.src = embedUrl(clip);
-        frame.title = clip.title;
-        frame.allow = "autoplay; fullscreen; encrypted-media; picture-in-picture";
-        frame.allowFullscreen = true;
-        play.replaceWith(frame);
-      });
-      const meta = make("div", "clip-meta");
-      meta.append(
-        make("span", "clip-tag", `EXHIBIT ${exhibit(i)}`),
-        make("h3", "clip-title", clip.title),
-        make("span", "clip-source", clip.source === "twitch" ? "Twitch clip" : "YouTube"),
+    const poster = make("button", "replay-poster");
+    poster.type = "button";
+    poster.setAttribute("aria-label", `Play: ${clip.title}`);
+    if (clip.source === "youtube") {
+      const thumb = make("img", "replay-thumb");
+      thumb.src = `https://i.ytimg.com/vi/${encodeURIComponent(clip.videoId)}/hqdefault.jpg`;
+      thumb.alt = "";
+      poster.append(thumb);
+    }
+    const caption = make("span", "replay-caption");
+    caption.append(make("span", "replay-caption-tag", "KILLCAM"), make("strong", "", clip.title));
+    poster.append(make("span", "replay-play", "▶"), caption);
+    poster.addEventListener("click", playClip);
+    replayScreen.replaceChildren(poster);
+  }
+
+  function renderClips() {
+    $("#replay-count").textContent = `(${clips.length})`;
+    replayList.replaceChildren(...clips.map((clip, i) => {
+      const item = make("button", "replay-item");
+      item.type = "button";
+      const text = make("span", "replay-item-text");
+      text.append(
+        make("span", "replay-item-title", clip.title),
+        make("span", "replay-item-meta", `${clip.source === "twitch" ? "Twitch clip" : "YouTube"} · ${timeAgo(clip.at)}`),
       );
-      card.append(play, meta);
-      return card;
+      item.append(make("span", "replay-letter", exhibit(i)), text);
+      item.addEventListener("click", () => showClip(i, true));
+      const row = make("li");
+      row.append(item);
+      return row;
     }));
+    showClip(0, false);
   }
 
   (async () => {
     try {
       const res = await fetch("/api/clips");
       if (!res.ok) throw new Error(res.status);
-      renderClips((await res.json()).clips);
+      clips = (await res.json()).clips;
     } catch {
-      clipsGrid.replaceChildren(make("p", "clips-empty", "Couldn't load clips right now."));
+      clips = [];
     }
+    // No clips yet: keep the section (and its menu links) hidden.
+    if (!clips.length) return;
+    renderClips();
+    clipsSection.hidden = false;
+    document.querySelectorAll(".nav-clips").forEach((link) => { link.hidden = false; });
   })();
 
   /* ---------- Suggestion box (only admins can read these) ---------- */

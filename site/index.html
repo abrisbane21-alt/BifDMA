@@ -35,6 +35,7 @@
         <span>BIF<span class="accent">DMA</span></span>
       </a>
       <nav class="nav-links" id="nav-links" aria-label="Main">
+        <a href="#clips" class="nav-clips" hidden>Clips</a>
         <a href="#features">Features</a>
         <a href="#bosses">Boss ESP</a>
         <a href="#excuses">Excuse Engine</a>
@@ -158,6 +159,34 @@
         <span>✦ Games with bif: <b>25 gifted subs = 3 games</b> (this one's real)</span>
       </div>
     </div>
+
+    <!-- CLIPS (shown once an admin has added one) -->
+    <section id="clips" class="section section-alt clips-section" hidden>
+      <div class="container">
+        <div class="section-head clips-head">
+          <div>
+            <span class="kicker">// killcam</span>
+            <h2>Game sense, caught on camera.</h2>
+          </div>
+          <p class="section-sub">bif's clips, picked by the admins. Watch them back and decide for yourself.</p>
+        </div>
+        <div class="replay">
+          <div class="replay-player">
+            <div class="replay-hud">
+              <span class="replay-rec"><span class="dot" aria-hidden="true"></span>REPLAY</span>
+              <span id="replay-exhibit">EXHIBIT A</span>
+              <span id="replay-source">TWITCH</span>
+            </div>
+            <div class="replay-screen" id="replay-screen"></div>
+            <p class="replay-console">&gt; analysis ....... <b id="replay-verdict"></b></p>
+          </div>
+          <div class="replay-log">
+            <p class="replay-log-title">Evidence log <span id="replay-count"></span></p>
+            <ol class="replay-list" id="replay-list"></ol>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- FEATURES -->
     <section id="features" class="section">
@@ -442,22 +471,8 @@
       </div>
     </section>
 
-    <!-- CLIPS -->
-    <section id="clips" class="section section-alt">
-      <div class="container">
-        <div class="section-head">
-          <span class="kicker">// clips</span>
-          <h2>Game sense, caught on camera.</h2>
-          <p class="section-sub">Clips of bif doing things chat can't explain, picked by the admins. Watch them and decide for yourself.</p>
-        </div>
-        <div class="clips-grid" id="clips-grid">
-          <p class="clips-empty">Loading clips…</p>
-        </div>
-      </div>
-    </section>
-
     <!-- REVIEWS -->
-    <section id="reviews" class="section">
+    <section id="reviews" class="section section-alt">
       <div class="container">
         <div class="section-head">
           <span class="kicker">// reviews</span>
@@ -537,7 +552,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="section section-alt">
+    <section id="faq" class="section">
       <div class="container faq-wrap">
         <div class="faq-intro">
           <span class="kicker">// faq</span>
@@ -680,7 +695,7 @@
           <a href="#pricing">Pricing</a>
           <a href="#sauce">Secret Sauce</a>
           <a href="#safe-sim">Safe Simulator</a>
-          <a href="#clips">Clips</a>
+          <a href="#clips" class="nav-clips" hidden>Clips</a>
           <a href="#faq">FAQ</a>
         </div>
         <div class="footer-col">

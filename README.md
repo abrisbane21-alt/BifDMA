@@ -98,8 +98,10 @@ Until `REVIEWS_ADMIN_KEY` is set, nobody can sign in.
 ### Clips
 
 Clips are stored as links and play in Twitch's or YouTube's own player when someone presses play,
-so no video is hosted on the site (Netlify functions can't take uploads over ~6 MB anyway). The
-newest clip is shown first as "Exhibit A".
+so no video is hosted on the site (Netlify functions can't take uploads over ~6 MB anyway). They
+appear in the "killcam" player just below the top of the main page, with the newest clip first as
+"Exhibit A" and the rest in the evidence log beside it. The section (and its menu link) stays
+hidden until there's at least one clip.
 
 ### Stats and privacy
 
