@@ -1,12 +1,13 @@
 // Reviews API for bifdma.org, served at /api/reviews.
 //   GET                      latest reviews, newest first (?limit=, max 200)
 //   POST {name,stars,text}   add a review
-//   DELETE ?id=              remove a review (needs the x-admin-key header)
+//   DELETE ?id=              remove a review (admins only: x-admin-key header)
 // Reviews are kept in Netlify Blobs, one blob per review.
 
 import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { adminError, clean, hash, isBlocked, json } from "../lib/shared.mjs";
+import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
+import { clean, hash, isBlocked, json } from "../lib/shared.mjs";
 
 const MAX_NAME = 30;
 const MAX_TEXT = 280;
@@ -18,17 +19,18 @@ const ID_PATTERN = /^\d{13}-[a-f0-9]{8}$/;
 
 export default async (req, context) => {
   const store = getStore({ name: "reviews", consistency: "strong" });
-  return handleRequest(req, context, store, process.env.REVIEWS_ADMIN_KEY);
+  return handleRequest(req, context, store, netlifyAuth());
 };
 
 export const config = { path: "/api/reviews" };
 
 // Kept separate from the default export so it can be tested with an in-memory store.
-export async function handleRequest(req, context, store, adminKey) {
+// auth(req) resolves to the signed-in admin or null.
+export async function handleRequest(req, context, store, auth) {
   try {
     if (req.method === "GET") return await listReviews(req, store);
     if (req.method === "POST") return await addReview(req, context, store);
-    if (req.method === "DELETE") return await deleteReview(req, store, adminKey);
+    if (req.method === "DELETE") return await deleteReview(req, store, auth);
     return json({ error: "Method not allowed." }, 405, { Allow: "GET, POST, DELETE" });
   } catch (err) {
     console.error(err);
@@ -94,9 +96,8 @@ async function addReview(req, context, store) {
   return json({ review }, 201);
 }
 
-async function deleteReview(req, store, adminKey) {
-  const denied = adminError(req, adminKey);
-  if (denied) return denied;
+async function deleteReview(req, store, auth) {
+  if (!(await auth(req))) return notAdmin();
   const id = new URL(req.url).searchParams.get("id") || "";
   if (!ID_PATTERN.test(id)) return json({ error: "Unknown review." }, 400);
   await store.delete(`review/${id}`);

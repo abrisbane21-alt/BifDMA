@@ -577,11 +577,125 @@
     setInterval(showToast, 18000);
   }, 7000);
 
+  /* ---------- Site stats (anonymous counts for the admin page) ---------- */
+  function track(event) {
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event }),
+      keepalive: true,
+    }).catch(() => { /* stats are best-effort */ });
+  }
+  track("view");
+
+  /* ---------- Clips (added by admins, via /api/clips) ---------- */
+  const clipsGrid = $("#clips-grid");
+
+  function exhibit(index) {
+    return index < 26 ? String.fromCharCode(65 + index) : String(index + 1);
+  }
+
+  // Twitch needs to know which site is embedding the clip.
+  function embedUrl(clip) {
+    return clip.source === "twitch"
+      ? `https://clips.twitch.tv/embed?clip=${encodeURIComponent(clip.videoId)}&parent=${location.hostname}&autoplay=true`
+      : `https://www.youtube-nocookie.com/embed/${encodeURIComponent(clip.videoId)}?autoplay=1`;
+  }
+
+  function renderClips(clips) {
+    if (!clips.length) {
+      clipsGrid.replaceChildren(make("p", "clips-empty", "No clips yet. The admins are still gathering evidence."));
+      return;
+    }
+    clipsGrid.replaceChildren(...clips.map((clip, i) => {
+      const card = make("article", "clip");
+      // The player only loads when someone presses play, so the page stays fast.
+      const play = make("button", `clip-play clip-${clip.source}`);
+      play.type = "button";
+      play.setAttribute("aria-label", `Play clip: ${clip.title}`);
+      if (clip.source === "youtube") {
+        const thumb = make("img", "clip-thumb");
+        thumb.src = `https://i.ytimg.com/vi/${encodeURIComponent(clip.videoId)}/hqdefault.jpg`;
+        thumb.alt = "";
+        thumb.loading = "lazy";
+        play.append(thumb);
+      }
+      play.append(make("span", "clip-play-icon", "▶"));
+      play.addEventListener("click", () => {
+        const frame = make("iframe", "clip-frame");
+        frame.src = embedUrl(clip);
+        frame.title = clip.title;
+        frame.allow = "autoplay; fullscreen; encrypted-media; picture-in-picture";
+        frame.allowFullscreen = true;
+        play.replaceWith(frame);
+      });
+      const meta = make("div", "clip-meta");
+      meta.append(
+        make("span", "clip-tag", `EXHIBIT ${exhibit(i)}`),
+        make("h3", "clip-title", clip.title),
+        make("span", "clip-source", clip.source === "twitch" ? "Twitch clip" : "YouTube"),
+      );
+      card.append(play, meta);
+      return card;
+    }));
+  }
+
+  (async () => {
+    try {
+      const res = await fetch("/api/clips");
+      if (!res.ok) throw new Error(res.status);
+      renderClips((await res.json()).clips);
+    } catch {
+      clipsGrid.replaceChildren(make("p", "clips-empty", "Couldn't load clips right now."));
+    }
+  })();
+
+  /* ---------- Suggestion box (only admins can read these) ---------- */
+  const feedbackForm = $("#feedback-form");
+  const feedbackStatus = $("#feedback-status");
+  const feedbackText = feedbackForm.elements.text;
+
+  function setFeedbackStatus(message, kind) {
+    feedbackStatus.textContent = message;
+    feedbackStatus.className = kind ? `form-status ${kind}` : "form-status";
+  }
+
+  feedbackText.addEventListener("input", () => { $("#feedback-count").textContent = feedbackText.value.length; });
+
+  feedbackForm.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    if (feedbackText.value.trim().length < 5) {
+      setFeedbackStatus("Write a little more so the admins know what you mean.", "err");
+      feedbackText.focus();
+      return;
+    }
+    const button = feedbackForm.querySelector("button[type=submit]");
+    button.disabled = true;
+    setFeedbackStatus("Sending…");
+    try {
+      const res = await fetch("/api/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(Object.fromEntries(new FormData(feedbackForm))),
+      });
+      const out = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(out.error || "Couldn't send that. Try again in a bit.");
+      feedbackForm.reset();
+      $("#feedback-count").textContent = "0";
+      setFeedbackStatus("Sent. The admins will read it (and probably laugh).", "ok");
+    } catch (err) {
+      setFeedbackStatus(err instanceof TypeError ? "Couldn't reach the server. Try again in a bit." : err.message, "err");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   /* ---------- Bartholomew ---------- */
   const zap = $("#zap");
   let zapTimer;
 
   function zapYou() {
+    track("zap");
     zap.hidden = false;
     // restart the flash/shake if he zaps you twice in a row
     zap.style.animation = "none";

@@ -23,7 +23,12 @@ export function clean(value, max) {
 }
 
 export function isBlocked(value) {
-  return BLOCKED_WORDS.test(value) || BLOCKED_PATTERNS.some((pattern) => pattern.test(value));
+  return hasBlockedWords(value) || BLOCKED_PATTERNS.some((pattern) => pattern.test(value));
+}
+
+// Just the slur check, for text only admins read (links are fine there).
+export function hasBlockedWords(value) {
+  return BLOCKED_WORDS.test(value);
 }
 
 // Salted SHA-256, used so IPs and secret tokens are never stored as-is.
@@ -38,16 +43,13 @@ export function sameSecret(given, expected) {
   return timingSafeEqual(a, b);
 }
 
-// Returns an error response if the request isn't from the admin, otherwise null.
-export function adminError(req, adminKey) {
-  if (!adminKey) {
-    return json({ error: "Deleting is turned off. Set REVIEWS_ADMIN_KEY in Netlify to turn it on." }, 403);
-  }
-  if (!sameSecret(req.headers.get("x-admin-key") || "", adminKey)) {
-    return json({ error: "Wrong admin key." }, 401);
-  }
-  return null;
+// UTC date like "2026-09-29", optionally some days back. Used for daily stats.
+export function dayKey(daysAgo = 0) {
+  return new Date(Date.now() - daysAgo * 86_400_000).toISOString().slice(0, 10);
 }
+
+// For admin-only responses: never cache them anywhere.
+export const PRIVATE = { "Cache-Control": "private, no-store" };
 
 export function json(data, status, headers = {}) {
   return new Response(JSON.stringify(data), {

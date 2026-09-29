@@ -20,16 +20,16 @@
         <span class="logo-mark" aria-hidden="true"></span>
         <span>BIF<span class="accent">DMA</span></span>
       </a>
-      <a href="index.html#reviews" class="btn btn-ghost btn-sm nav-back">← Back to reviews</a>
+      <a href="index.html" class="btn btn-ghost btn-sm nav-back">← Back to site</a>
     </div>
   </header>
 
   <main class="section store">
     <div class="container admin">
       <div class="section-head">
-        <span class="kicker">// admin</span>
+        <span class="kicker">// admin mode</span>
         <h1 class="store-title">Admin</h1>
-        <p class="store-sub">Delete reviews and remove names from the Safe Simulator leaderboard. You need the admin key saved in Netlify as <code>REVIEWS_ADMIN_KEY</code>.</p>
+        <p class="store-sub">Sign in with your admin key. The owner signs in with the key saved in Netlify as <code>REVIEWS_ADMIN_KEY</code> and can make other people admins.</p>
       </div>
 
       <form class="admin-bar" id="admin-form">
@@ -37,16 +37,117 @@
           <span class="field-label">Admin key</span>
           <input type="password" name="key" autocomplete="current-password" required>
         </label>
-        <button class="btn btn-primary" type="submit">Load</button>
+        <button class="btn btn-primary" type="submit">Sign in</button>
       </form>
+      <div class="admin-me" id="admin-me" hidden>
+        <p>Signed in as <strong id="admin-name"></strong> <span class="role-badge" id="admin-role"></span></p>
+        <button class="btn btn-ghost btn-sm" type="button" id="sign-out">Sign out</button>
+      </div>
       <p class="form-status" id="admin-status" role="status"></p>
-      <h2 class="admin-h2">Reviews</h2>
-      <div class="wall-list admin-wall" id="admin-wall"></div>
-      <h2 class="admin-h2">Safe Simulator leaderboard</h2>
-      <ol class="board-list admin-board" id="admin-board"></ol>
+
+      <div id="admin-app" hidden>
+        <div class="admin-tabs" role="tablist" aria-label="Admin sections">
+          <button type="button" role="tab" id="tab-stats" aria-controls="panel-stats" aria-selected="true">Stats</button>
+          <button type="button" role="tab" id="tab-feedback" aria-controls="panel-feedback" aria-selected="false" tabindex="-1">Suggestions</button>
+          <button type="button" role="tab" id="tab-clips" aria-controls="panel-clips" aria-selected="false" tabindex="-1">Clips</button>
+          <button type="button" role="tab" id="tab-reviews" aria-controls="panel-reviews" aria-selected="false" tabindex="-1">Reviews</button>
+          <button type="button" role="tab" id="tab-board" aria-controls="panel-board" aria-selected="false" tabindex="-1">Leaderboard</button>
+          <button type="button" role="tab" id="tab-admins" aria-controls="panel-admins" aria-selected="false" tabindex="-1" hidden>Admins</button>
+        </div>
+
+        <!-- Stats -->
+        <section class="admin-panel" role="tabpanel" id="panel-stats" aria-labelledby="tab-stats">
+          <div class="panel-head">
+            <h2 class="admin-h2">Site stats</h2>
+            <button class="btn btn-ghost btn-sm" type="button" id="stats-refresh">Refresh</button>
+          </div>
+          <div class="stat-group">
+            <p class="stat-group-title">Traffic</p>
+            <div class="stat-tiles" id="tiles-traffic"></div>
+          </div>
+          <figure class="chart-card">
+            <div class="chart-head">
+              <figcaption>
+                <strong>Page views per day</strong>
+                <span>Last 7 days (UTC). Hover a bar for visitors.</span>
+              </figcaption>
+              <button class="btn btn-ghost btn-sm" type="button" id="chart-toggle" aria-pressed="false">Show table</button>
+            </div>
+            <div class="chart-body" id="chart-body"></div>
+            <div class="chart-table" id="chart-table" hidden></div>
+          </figure>
+          <div class="stat-group">
+            <p class="stat-group-title">Jokes</p>
+            <div class="stat-tiles" id="tiles-jokes"></div>
+          </div>
+          <div class="stat-group">
+            <p class="stat-group-title">Community</p>
+            <div class="stat-tiles" id="tiles-community"></div>
+          </div>
+        </section>
+
+        <!-- Suggestions -->
+        <section class="admin-panel" role="tabpanel" id="panel-feedback" aria-labelledby="tab-feedback" hidden>
+          <div class="panel-head">
+            <h2 class="admin-h2">Suggestions</h2>
+            <span class="muted small">Only admins can see these.</span>
+          </div>
+          <div class="wall-list admin-wall" id="feedback-list"></div>
+        </section>
+
+        <!-- Clips -->
+        <section class="admin-panel" role="tabpanel" id="panel-clips" aria-labelledby="tab-clips" hidden>
+          <h2 class="admin-h2">Clips</h2>
+          <form class="admin-card clip-form" id="clip-form" novalidate>
+            <label class="field">
+              <span class="field-label">Twitch clip or YouTube link</span>
+              <input type="text" name="url" placeholder="https://clips.twitch.tv/…" autocomplete="off" required>
+            </label>
+            <label class="field">
+              <span class="field-label">Title</span>
+              <input type="text" name="title" maxlength="80" placeholder="Three-wall pre-fire on TV" required>
+            </label>
+            <button class="btn btn-primary" type="submit">Add clip</button>
+          </form>
+          <div class="wall-list admin-wall" id="clip-list"></div>
+        </section>
+
+        <!-- Reviews -->
+        <section class="admin-panel" role="tabpanel" id="panel-reviews" aria-labelledby="tab-reviews" hidden>
+          <h2 class="admin-h2">Reviews</h2>
+          <div class="wall-list admin-wall" id="review-list"></div>
+        </section>
+
+        <!-- Leaderboard -->
+        <section class="admin-panel" role="tabpanel" id="panel-board" aria-labelledby="tab-board" hidden>
+          <h2 class="admin-h2">Safe Simulator leaderboard</h2>
+          <ol class="board-list admin-board" id="board-list"></ol>
+        </section>
+
+        <!-- Admins (owner only) -->
+        <section class="admin-panel" role="tabpanel" id="panel-admins" aria-labelledby="tab-admins" hidden>
+          <h2 class="admin-h2">Admins</h2>
+          <form class="admin-card admin-add" id="add-admin-form" novalidate>
+            <label class="field">
+              <span class="field-label">Their name</span>
+              <input type="text" name="name" maxlength="30" placeholder="VoidABI" autocomplete="off" required>
+            </label>
+            <button class="btn btn-primary" type="submit">Make admin</button>
+          </form>
+          <div class="new-key" id="new-key" hidden>
+            <p><strong>Send this key to <span id="new-key-name"></span>.</strong> It's only shown once. They sign in here with it.</p>
+            <div class="new-key-row">
+              <code id="new-key-value"></code>
+              <button class="btn btn-ghost btn-sm" type="button" id="copy-key">Copy</button>
+            </div>
+          </div>
+          <ul class="admin-people" id="admin-list"></ul>
+        </section>
+      </div>
     </div>
   </main>
 
+  <div class="chart-tooltip" id="chart-tooltip" role="status" hidden></div>
   <script src="admin.js"></script>
 </body>
 </html>

@@ -3,7 +3,7 @@
 //   POST {action:"join", name, reds, purples}     claim a username; returns a secret token
 //   POST {action:"sync", id, token, seq, reds, purples}  add reds/purples found since the last sync
 // The rare drop used to be a white item; records and requests that still say "whites" are read as purples.
-//   DELETE ?name=                         remove a player (needs the x-admin-key header)
+//   DELETE ?name=                         remove a player (admins only: x-admin-key header)
 //
 // Clicks happen in the browser, so the server can't see them. To keep the board
 // honest-ish it only accepts up to MAX_PER_SEC reds per second of real time, and
@@ -11,7 +11,8 @@
 
 import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { adminError, clean, hash, isBlocked, json } from "../lib/shared.mjs";
+import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
+import { clean, hash, isBlocked, json } from "../lib/shared.mjs";
 
 const BOARD_SIZE = 50;
 const DEFAULT_LIMIT = 20;
@@ -26,13 +27,14 @@ const RESERVED = new Set(["bif", "bifsterr", "nova", "bartholomew", "admin", "mo
 
 export default async (req, context) => {
   const store = getStore({ name: "safe-sim", consistency: "strong" });
-  return handleRequest(req, context, store, process.env.REVIEWS_ADMIN_KEY);
+  return handleRequest(req, context, store, netlifyAuth());
 };
 
 export const config = { path: "/api/safe" };
 
 // Kept separate from the default export so it can be tested with an in-memory store.
-export async function handleRequest(req, context, store, adminKey) {
+// auth(req) resolves to the signed-in admin or null.
+export async function handleRequest(req, context, store, auth) {
   try {
     if (req.method === "GET") return await getBoard(req, store);
     if (req.method === "POST") {
@@ -46,7 +48,7 @@ export async function handleRequest(req, context, store, adminKey) {
       if (body.action === "sync") return await sync(body, store);
       return json({ error: "Unknown action." }, 400);
     }
-    if (req.method === "DELETE") return await removePlayer(req, store, adminKey);
+    if (req.method === "DELETE") return await removePlayer(req, store, auth);
     return json({ error: "Method not allowed." }, 405, { Allow: "GET, POST, DELETE" });
   } catch (err) {
     console.error(err);
@@ -160,9 +162,8 @@ async function sync(body, store) {
   return json({ error: "Busy. Try again." }, 503);
 }
 
-async function removePlayer(req, store, adminKey) {
-  const denied = adminError(req, adminKey);
-  if (denied) return denied;
+async function removePlayer(req, store, auth) {
+  if (!(await auth(req))) return notAdmin();
   const name = clean(new URL(req.url).searchParams.get("name"), 20);
   const entry = name && (await store.get(nameKey(name), { type: "json" }));
   if (!entry) return json({ error: "No player with that name." }, 404);

@@ -9,24 +9,30 @@ payment form.
 
 ## Files
 
-The website is in `site/`. The reviews API is a Netlify Function in `netlify/functions/`.
+The website is in `site/`. The APIs behind it are Netlify Functions in `netlify/functions/`, and
+their data lives in Netlify Blobs.
 
-| File                             | What it is                                                           |
-| -------------------------------- | -------------------------------------------------------------------- |
-| `site/index.html`                | The main page (most of the jokes live here — edit freely)            |
-| `site/styles.css`                | Styling for every page                                               |
-| `site/script.js`                 | Excuse generator, Safe Simulator, reviews wall, menu, toasts, zap    |
-| `site/buy.html`, `site/buy.js`   | Fake checkout page; every order ends in "Out of stock"               |
-| `site/admin.html`, `site/admin.js` | Private page for deleting reviews and leaderboard names           |
-| `site/favicon.svg`, `site/og.png`| Tab icon and the preview image used when the link is shared          |
-| `netlify/functions/reviews.mjs`  | Reviews API at `/api/reviews` (stores reviews in Netlify Blobs)      |
-| `netlify/functions/safe.mjs`     | Safe Simulator leaderboard API at `/api/safe`                        |
-| `netlify/lib/shared.mjs`         | Word filter and helpers used by both APIs                            |
-| `netlify.toml`, `package.json`   | Tells Netlify where the site and function are                        |
+| File                                 | What it is                                                      |
+| ------------------------------------ | --------------------------------------------------------------- |
+| `site/index.html`                    | The main page (most of the jokes live here — edit freely)       |
+| `site/styles.css`                    | Styling for every page                                          |
+| `site/script.js`                     | Main page behaviour: games, reviews, clips, suggestion box, zap |
+| `site/buy.html`, `site/buy.js`       | Fake checkout page; every order ends in "Out of stock"          |
+| `site/admin.html`, `site/admin.js`   | Admin mode (sign in with an admin key)                          |
+| `site/favicon.svg`, `site/og.png`    | Tab icon and the preview image used when the link is shared     |
+| `netlify/functions/reviews.mjs`      | `/api/reviews` — the reviews wall                               |
+| `netlify/functions/safe.mjs`         | `/api/safe` — the Safe Simulator leaderboard                    |
+| `netlify/functions/clips.mjs`        | `/api/clips` — clips admins add                                 |
+| `netlify/functions/feedback.mjs`     | `/api/feedback` — the suggestion box (only admins can read it)  |
+| `netlify/functions/track.mjs`        | `/api/track` — anonymous counts for the admin stats             |
+| `netlify/functions/admin.mjs`        | `/api/admin` — sign-in check, site stats, managing admins       |
+| `netlify/lib/auth.mjs`               | Works out whether a request comes from the owner or an admin    |
+| `netlify/lib/shared.mjs`             | Word filter and other helpers the APIs share                    |
+| `netlify.toml`, `package.json`       | Tells Netlify where the site and functions are                  |
 
 To preview the pages locally, run `python3 -m http.server` inside `site/` and visit
-http://localhost:8000. The reviews wall and the leaderboard only work on Netlify, so locally
-they show a "couldn't load" message.
+http://localhost:8000. Anything that needs the APIs (reviews, leaderboard, clips, suggestions,
+admin mode) only works on Netlify, so locally it shows a "couldn't load" message.
 
 ## Reviews
 
@@ -60,16 +66,46 @@ any clicks not sent yet), so the two always match. The rare 1-in-1,000 drop is a
 
 The board keeps the top 50 players; the page shows the top 20.
 
-### Deleting reviews and removing names
+## Admin mode
+
+`https://bifdma.org/admin.html` is the admin area. Nothing on the public site links to it.
+
+**The owner** signs in with the owner key. To set it up once:
 
 1. In Netlify, open the site → **Site configuration** (may be called **Project configuration**) →
    **Environment variables** → **Add a variable**. Name it `REVIEWS_ADMIN_KEY` and set the value to a
    long password only you know. Then trigger a new deploy (**Deploys** → **Trigger deploy**).
-2. Go to `https://bifdma.org/admin.html`, enter that password and click **Load**. Delete reviews or
-   remove leaderboard names from there. Changes can take up to 15 seconds to show for everyone.
-   A removed name becomes free for anyone to take.
+2. Go to `admin.html` and sign in with that password.
 
-Until `REVIEWS_ADMIN_KEY` is set, nobody (including you) can delete reviews or remove names.
+**Making someone an admin:** as the owner, open the **Admins** tab, type their name and press
+**Make admin**. The page shows their personal admin key once; send it to them. They sign in on
+`admin.html` with it. **Revoke** stops their key working straight away. Only a hash of each key is
+stored, so a lost key can't be recovered; revoke it and make a new one.
+
+What admins can do (the owner can do all of it too):
+
+| Tab           | What it does                                                                 |
+| ------------- | ---------------------------------------------------------------------------- |
+| Stats         | Visitors and page views (today, 7 days, all time, chart per day), how many people tried to buy a DMA, Bartholomew zaps, reviews, leaderboard players and reds, suggestions, clips, admins |
+| Suggestions   | Read and delete what people sent through the suggestion box                  |
+| Clips         | Add clips by pasting a Twitch clip link (or YouTube link) plus a title; delete clips |
+| Reviews       | Delete reviews                                                               |
+| Leaderboard   | Remove names from the Safe Simulator leaderboard                             |
+| Admins        | Owner only: make and revoke admins                                           |
+
+Until `REVIEWS_ADMIN_KEY` is set, nobody can sign in.
+
+### Clips
+
+Clips are stored as links and play in Twitch's or YouTube's own player when someone presses play,
+so no video is hosted on the site (Netlify functions can't take uploads over ~6 MB anyway). The
+newest clip is shown first as "Exhibit A".
+
+### Stats and privacy
+
+The page sends an anonymous count when it's viewed, when someone presses Buy now on the store, and
+when Bartholomew zaps someone. Only totals per day are kept. A visitor is counted once per day
+using a salted hash of their IP address; the address itself is never stored.
 
 ## Putting it live on bifdma.org (Netlify + GoDaddy)
 

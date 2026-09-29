@@ -442,8 +442,22 @@
       </div>
     </section>
 
+    <!-- CLIPS -->
+    <section id="clips" class="section section-alt">
+      <div class="container">
+        <div class="section-head">
+          <span class="kicker">// clips</span>
+          <h2>Game sense, caught on camera.</h2>
+          <p class="section-sub">Clips of bif doing things chat can't explain, picked by the admins. Watch them and decide for yourself.</p>
+        </div>
+        <div class="clips-grid" id="clips-grid">
+          <p class="clips-empty">Loading clips…</p>
+        </div>
+      </div>
+    </section>
+
     <!-- REVIEWS -->
-    <section id="reviews" class="section section-alt">
+    <section id="reviews" class="section">
       <div class="container">
         <div class="section-head">
           <span class="kicker">// reviews</span>
@@ -523,7 +537,7 @@
     </section>
 
     <!-- FAQ -->
-    <section id="faq" class="section">
+    <section id="faq" class="section section-alt">
       <div class="container faq-wrap">
         <div class="faq-intro">
           <span class="kicker">// faq</span>
@@ -617,6 +631,29 @@
             <a class="btn btn-discord" href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">Join the Discord</a>
           </article>
         </div>
+        <div class="feedback-card" id="feedback">
+          <div class="feedback-copy">
+            <span class="kicker">// suggestion box</span>
+            <h3>Got an idea for the site?</h3>
+            <p>Suggest a joke, a feature, a clip, anything. Only the admins can read these.</p>
+          </div>
+          <form class="feedback-form" id="feedback-form" novalidate>
+            <label class="field">
+              <span class="field-label">Your idea</span>
+              <textarea name="text" maxlength="500" rows="4" required placeholder="Add a button that zaps bif back."></textarea>
+              <span class="char-count"><span id="feedback-count">0</span>/500</span>
+            </label>
+            <label class="field">
+              <span class="field-label">Name (optional)</span>
+              <input type="text" name="name" maxlength="30" placeholder="Anonymous Operator" autocomplete="nickname">
+            </label>
+            <div class="hp" aria-hidden="true">
+              <label>Website <input type="text" name="website" tabindex="-1" autocomplete="off"></label>
+            </div>
+            <button class="btn btn-primary" type="submit">Send suggestion</button>
+            <p class="form-status" id="feedback-status" role="status"></p>
+          </form>
+        </div>
       </div>
     </section>
   </main>
@@ -643,11 +680,13 @@
           <a href="#pricing">Pricing</a>
           <a href="#sauce">Secret Sauce</a>
           <a href="#safe-sim">Safe Simulator</a>
+          <a href="#clips">Clips</a>
           <a href="#faq">FAQ</a>
         </div>
         <div class="footer-col">
           <p class="footer-title">bif</p>
           <a href="#games">Play with bif</a>
+          <a href="#feedback">Suggest an idea</a>
           <a href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">Twitch</a>
           <a href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">Discord</a>
         </div>

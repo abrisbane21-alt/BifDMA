@@ -78,6 +78,13 @@
 
   form.addEventListener("submit", (e) => {
     e.preventDefault();
+    // Counted (anonymously) for the "tried to buy a DMA" stat on the admin page.
+    fetch("/api/track", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ event: "buy" }),
+      keepalive: true,
+    }).catch(() => { /* stats are best-effort */ });
     let body = plans[planInput.value].soldOut;
     if (sauceInput.checked) body += " Nova's Secret Sauce is gone too. Nova used the last jar.";
     body += payNotes[payInput.value];
