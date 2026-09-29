@@ -101,48 +101,6 @@
     countEl.textContent = (++used).toLocaleString();
   });
 
-  /* ---------- "Buy" modal ---------- */
-  const modal = $("#modal");
-  const modalTitle = $("#modal-title");
-  const modalBody = $("#modal-body");
-  const declines = [
-    ["Payment declined: skill issue.", "BifDMA isn't real. There's nothing to buy and nothing to download."],
-    ["Insufficient Koen.", "Go sell some reds first. (Kidding. Nothing here is for sale. This site is a joke.)"],
-    ["Error 69: this website is a joke.", "There's no DMA, no checkout, and no Discord. Just vibes."],
-    ["Blocked by ACE.", "Wow, it finally caught something. Unfortunately that something is a parody website."],
-    ["Payment zapped.", "Bartholomew got to your card first. He said his name, and then he zapped it."],
-    ["Out of stock.", "We sold the last one to a guy who swears he just has really good audio."],
-    ["Nice try.", "If you wanted to pre-fire corners you could just… practice. Like bif. Allegedly."],
-  ];
-  const sauceDeclines = [
-    ["Out of sauce.", "Nova already used the last jar. Every safe in Nova's stash had a red in it."],
-    ["Recipe locked.", "Nova's Secret Sauce is a secret. Also it isn't real. Nothing on this site is."],
-    ["Safe opened: it's empty.", "Turns out without the sauce, safes are just safes. (There is no sauce. This is a joke site.)"],
-  ];
-  let lastFocus = null;
-
-  function openModal(list) {
-    const [title, body] = pick(list, null);
-    modalTitle.textContent = title;
-    modalBody.textContent = body;
-    lastFocus = document.activeElement;
-    modal.hidden = false;
-    document.body.style.overflow = "hidden";
-    modal.querySelector(".modal-card .btn").focus();
-  }
-  function closeModal() {
-    modal.hidden = true;
-    document.body.style.overflow = "";
-    if (lastFocus) lastFocus.focus();
-  }
-
-  document.querySelectorAll("[data-buy]").forEach((btn) => btn.addEventListener("click", () => openModal(declines)));
-  document.querySelectorAll("[data-sauce]").forEach((btn) => btn.addEventListener("click", () => openModal(sauceDeclines)));
-  modal.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closeModal));
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeModal();
-  });
-
   /* ---------- Fake "recent purchase" toasts ---------- */
   const toast = $("#toast");
   const toastText = $("#toast-text");
@@ -161,7 +119,7 @@
   let hideTimer;
 
   function showToast() {
-    if (toastsOff || !modal.hidden) return;
+    if (toastsOff) return;
     toastText.innerHTML = purchases[toastIndex++ % purchases.length];
     toast.hidden = false;
     clearTimeout(hideTimer);
@@ -183,7 +141,6 @@
   let zapTimer;
 
   function zapYou() {
-    if (!modal.hidden) closeModal();
     zap.hidden = false;
     // restart the flash/shake if he zaps you twice in a row
     zap.style.animation = "none";

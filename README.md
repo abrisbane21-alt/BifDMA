@@ -3,16 +3,19 @@
 A parody "cheat store" website for **bifdma.org**. It's a joke fan site about bifsterr's chat
 constantly accusing him of cheating in Arena Breakout: Infinite.
 
-Nothing on the site is real. Every "Buy" button opens a joke popup, and the footer and FAQ state that
-it's a parody. There is no product, no download, and no payment form.
+Nothing on the site is real. Every "Buy" button goes to a fake checkout that is always out of
+stock, and the footer and FAQ state that it's a parody. There is no product, no download, and no
+payment form.
 
 ## Files
 
 | File          | What it is                                                           |
 | ------------- | -------------------------------------------------------------------- |
-| `index.html`  | The whole page (all the jokes live here — edit freely)               |
+| `index.html`  | The main page (most of the jokes live here — edit freely)            |
 | `styles.css`  | Styling                                                              |
-| `script.js`   | Excuse generator, "payment declined" popup, fake purchase toasts     |
+| `script.js`   | Excuse generator, mobile menu, fake purchase toasts, Bartholomew zap |
+| `buy.html`    | Fake checkout page; every order ends in "Out of stock"               |
+| `buy.js`      | Order summary and the out-of-stock popup for `buy.html`              |
 | `favicon.svg` | Browser tab icon                                                     |
 | `og.png`      | Preview image shown when the link is shared on Discord/Twitter/etc. |
 
