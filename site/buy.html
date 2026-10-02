@@ -3,14 +3,14 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Checkout — BifDMA Store</title>
-  <meta name="description" content="The BifDMA store. Everything is out of stock, because none of it is real. A parody site.">
+  <title>Out of stock — Tip bif instead</title>
+  <meta name="description" content="BifDMA is out of stock forever (it never existed). If you enjoy bif's streams, you can tip him on PayPal. A fan-made parody site.">
   <meta name="theme-color" content="#07090c">
 
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://bifdma.org/buy.html">
-  <meta property="og:title" content="BifDMA Store — Only 1 left in stock!">
-  <meta property="og:description" content="The DMA card bifsterr definitely doesn't use. Out of stock forever. A parody — nothing is for sale.">
+  <meta property="og:title" content="BifDMA is out of stock. Tip bif instead.">
+  <meta property="og:description" content="The DMA never existed. bif's content does. Tip him on PayPal if you enjoy the streams.">
   <meta property="og:image" content="https://bifdma.org/og.png">
   <meta name="twitter:card" content="summary_large_image">
 
@@ -34,95 +34,101 @@
 
   <main class="section store">
     <div class="container">
-      <p class="crumbs"><a href="index.html">BifDMA</a> <span aria-hidden="true">/</span> Store <span aria-hidden="true">/</span> Checkout</p>
-      <div class="section-head">
-        <span class="kicker">// checkout</span>
-        <h1 class="store-title">Secure checkout<span class="accent">*</span></h1>
-        <p class="store-sub">*Secured by the same anti-cheat that hasn't caught bif yet.</p>
+      <p class="crumbs"><a href="index.html">BifDMA</a> <span aria-hidden="true">/</span> Store <span aria-hidden="true">/</span> Out of stock</p>
+
+      <div class="oos">
+        <span class="oos-stamp" aria-hidden="true">OUT OF STOCK</span>
+        <span class="kicker kicker-red">// checkout</span>
+        <h1 class="store-title">Out of stock. <span class="accent">Forever.</span></h1>
+        <p class="store-sub">BifDMA never existed, so there's nothing to buy, and there never will be. ACE can relax.</p>
       </div>
 
-      <form class="store-grid" id="checkout" novalidate>
-        <div class="store-steps">
-          <fieldset class="store-step">
-            <legend><span class="step-num">1</span> Choose your plan</legend>
-            <label class="opt">
-              <input type="radio" name="plan" value="lockdown">
-              <span class="opt-body">
-                <span class="opt-name">Lockdown</span>
-                <span class="opt-desc">Aim assist (lightly), purples and golds only, 1 excuse per raid.</span>
-              </span>
-              <span class="opt-price">42M <small>Koen/day</small></span>
+      <div class="tip-grid">
+        <section class="tip-card" aria-labelledby="tip-title">
+          <span class="kicker">// the real thing</span>
+          <h2 id="tip-title">Enjoy bif's streams? Tip him instead.</h2>
+          <p class="tip-lead">A tip is just a thank-you for the content. It goes straight to bif's PayPal and doesn't buy anything (definitely not a DMA).</p>
+
+          <fieldset class="tip-amounts">
+            <legend class="field-label">Pick an amount</legend>
+            <label class="tip-option">
+              <input type="radio" name="amount" value="2">
+              <span class="tip-price" data-amount="2"></span>
+              <span class="tip-name">Energy drink</span>
+              <span class="tip-desc">for the 3am Forbidden raids</span>
             </label>
-            <label class="opt">
-              <input type="radio" name="plan" value="forbidden" checked>
-              <span class="opt-body">
-                <span class="opt-name">Forbidden <span class="opt-badge">MOST SUS</span></span>
-                <span class="opt-desc">Map Knowledge™ for TV Station, Red ESP, Boss Tracker, unlimited excuses.</span>
-              </span>
-              <span class="opt-price">690M <small>Koen/month</small></span>
+            <label class="tip-option">
+              <input type="radio" name="amount" value="5" checked>
+              <span class="tip-price" data-amount="5"></span>
+              <span class="tip-name">Better headset</span>
+              <span class="tip-desc">for the “audio”</span>
             </label>
-            <label class="opt">
-              <input type="radio" name="plan" value="bif">
-              <span class="opt-body">
-                <span class="opt-name">The Bif</span>
-                <span class="opt-desc">Everything in Forbidden, a jar of sauce, and “is he cheating?” every 45 seconds.</span>
-              </span>
-              <span class="opt-price">1B <small>Koen + your reputation</small></span>
+            <label class="tip-option">
+              <input type="radio" name="amount" value="10">
+              <span class="tip-price" data-amount="10"></span>
+              <span class="tip-name">Gaming chair fund</span>
+              <span class="tip-desc">it's always the chair</span>
+            </label>
+            <label class="tip-option">
+              <input type="radio" name="amount" value="25">
+              <span class="tip-price" data-amount="25"></span>
+              <span class="tip-name">Batteries for Bartholomew</span>
+              <span class="tip-desc">he's gonna zap you</span>
+            </label>
+            <label class="tip-option tip-option-other">
+              <input type="radio" name="amount" value="other">
+              <span class="tip-price">Other</span>
+              <span class="tip-name">Your choice</span>
+              <span class="tip-desc">pick it on PayPal</span>
             </label>
           </fieldset>
 
-          <fieldset class="store-step">
-            <legend><span class="step-num">2</span> Add-ons</legend>
-            <label class="opt opt-sauce">
-              <input type="checkbox" name="sauce">
-              <span class="opt-body">
-                <span class="opt-name">Nova's Secret Sauce™</span>
-                <span class="opt-desc">Finds every red, then puts a red in every single one of your safes.</span>
-              </span>
-              <span class="opt-price">??? <small>Nova won't say</small></span>
-            </label>
-          </fieldset>
-
-          <fieldset class="store-step">
-            <legend><span class="step-num">3</span> Pay with</legend>
-            <div class="pay-options">
-              <label class="pay"><input type="radio" name="pay" value="koen" checked> Koen</label>
-              <label class="pay"><input type="radio" name="pay" value="bonds"> Bonds</label>
-              <label class="pay"><input type="radio" name="pay" value="reds"> Reds</label>
-              <label class="pay"><input type="radio" name="pay" value="subs"> Subs</label>
-            </div>
-          </fieldset>
-        </div>
-
-        <aside class="summary" aria-labelledby="summary-title">
-          <h2 id="summary-title">Order summary</h2>
-          <dl class="summary-rows">
-            <div><dt>Plan</dt><dd id="sum-plan">Forbidden</dd></div>
-            <div><dt>Add-on</dt><dd id="sum-addon">None</dd></div>
-            <div><dt>Paying with</dt><dd id="sum-pay">Koen</dd></div>
-            <div><dt>Delivery</dt><dd>Instant*</dd></div>
-          </dl>
-          <div class="summary-total">
-            <span>Total</span>
-            <strong id="sum-total">690M Koen/month</strong>
-          </div>
-          <p class="stock" id="stock">
-            <span class="stock-dot" aria-hidden="true"></span>
-            <span id="stock-text">Only 1 left in stock!</span>
+          <a class="btn btn-paypal btn-block" id="tip-btn" target="_blank" rel="noopener">Tip on PayPal</a>
+          <p class="tip-fine">
+            You'll finish on PayPal, so this site never sees your payment or details.
+            BifDMA is a fan-made parody and isn't run by bif.
           </p>
-          <p class="watching">👀 69 people are looking at this right now</p>
-          <button type="submit" class="btn btn-primary btn-block" id="buy-btn">Buy now</button>
-          <p class="summary-fine">Undetected* · Instant delivery* · No refunds*<br>*None of this is real. Nothing is for sale.</p>
+        </section>
+
+        <aside class="tip-side" aria-labelledby="free-title">
+          <h2 id="free-title">Free ways to support bif</h2>
+          <ul class="tip-ways">
+            <li>
+              <a href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">
+                <strong>Follow on Twitch</strong>
+                <span>Forbidden TV Station, every raid.</span>
+              </a>
+            </li>
+            <li>
+              <a href="index.html#games">
+                <strong>Games with bif</strong>
+                <span>25 gifted subs = 3 games, sorted out on Twitch.</span>
+              </a>
+            </li>
+            <li>
+              <a href="https://discord.gg/mrNfATKPs5" target="_blank" rel="noopener">
+                <strong>Join the Discord</strong>
+                <span>Clips, chat, and arguments about audio.</span>
+              </a>
+            </li>
+            <li>
+              <a href="index.html#reviews">
+                <strong>Leave a 5-star review</strong>
+                <span>The only rating we accept.</span>
+              </a>
+            </li>
+          </ul>
         </aside>
-      </form>
+      </div>
     </div>
   </main>
 
   <footer class="footer">
     <div class="container">
       <p class="disclaimer">
-        <strong>This is a parody.</strong> BifDMA is a joke fan site made by bifsterr's community. Nothing in this store exists, nothing is for sale,
-        and neither bifsterr nor Nova makes, sells, or uses cheats. Not affiliated with bifsterr, Twitch, MoreFun Studios, or Arena Breakout: Infinite.
+        <strong>This is a parody.</strong> BifDMA is a joke fan site made by bifsterr's community. There's no DMA and nothing is for sale;
+        tips go directly to bif through PayPal and buy nothing. Neither bifsterr nor Nova makes, sells, or uses cheats.
+        Not affiliated with Twitch, PayPal, MoreFun Studios, or Arena Breakout: Infinite.
       </p>
       <div class="footer-bottom">
         <p>© <span id="year">2026</span> BifDMA. Made with 0% skill by chat.</p>
@@ -130,19 +136,6 @@
       </div>
     </div>
   </footer>
-
-  <!-- Out of stock -->
-  <div class="modal" id="modal" hidden>
-    <div class="modal-backdrop" data-close></div>
-    <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modal-title">
-      <div class="modal-icon" aria-hidden="true">!</div>
-      <h3 id="modal-title">Out of stock.</h3>
-      <p id="modal-body">bif's chat bought every last one.</p>
-      <p id="modal-extra">Restock ETA: never.</p>
-      <p class="muted small">Nothing on this site is for sale — it's a parody. Go <a href="https://twitch.tv/bifsterr" target="_blank" rel="noopener">watch how bif does it</a> instead.</p>
-      <button type="button" class="btn btn-primary" data-close>Fine. I'll get good.</button>
-    </div>
-  </div>
 
   <script src="buy.js"></script>
 </body>

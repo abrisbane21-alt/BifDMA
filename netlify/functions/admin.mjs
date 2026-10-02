@@ -112,9 +112,10 @@ async function siteStats(stores) {
   );
   const board = (await stores.safe.get("board", { type: "json" }))?.players || [];
 
-  const [viewsTotal, buys, zaps, reviews, feedback, clips, admins] = await Promise.all([
+  const [viewsTotal, buys, tips, zaps, reviews, feedback, clips, admins] = await Promise.all([
     counter("total/views"),
     counter("total/buys"),
+    counter("total/tips"),
     counter("total/zaps"),
     count(stores.reviews, "review/"),
     count(stores.feedback, "feedback/"),
@@ -128,6 +129,7 @@ async function siteStats(stores) {
     visitors: { today: today.visitors, week: sum(byDay, "visitors") },
     byDay,
     buyAttempts: buys,
+    tipClicks: tips,
     zaps,
     reviews,
     players: playerBlobs.length,

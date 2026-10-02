@@ -1,104 +1,67 @@
 (function () {
   "use strict";
 
-  const $ = (sel) => document.querySelector(sel);
-  const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+  // bif's PayPal link, e.g. "https://paypal.me/bifsterr". Leave empty to keep the tip button off.
+  // With a paypal.me link the chosen amount is filled in for the tipper.
+  const PAYPAL_LINK = "";
+  const CURRENCY_SYMBOL = "$";
 
-  const plans = {
-    lockdown: {
-      name: "Lockdown",
-      price: "42M Koen/day",
-      soldOut: "Every Lockdown key went to people who still get sniped by Bernard.",
-    },
-    forbidden: {
-      name: "Forbidden",
-      price: "690M Koen/month",
-      soldOut: "bif's chat bought every last Forbidden key. (There were zero. This site is a joke.)",
-    },
-    bif: {
-      name: "The Bif",
-      price: "1B Koen + your reputation",
-      soldOut: "There's only one bif, and he isn't for sale.",
-    },
-  };
-  const payNames = { koen: "Koen", bonds: "Bonds", reds: "Reds", subs: "Subs" };
-  const payNotes = {
-    koen: "",
-    bonds: " Also, we don't take Bonds. Keep your Bonds.",
-    reds: " We'd take your reds, but Nova's Secret Sauce put one in every safe, so they're worthless now.",
-    subs: " Subs don't buy DMAs. 25 gifted subs do get you 3 games with bif, though.",
-  };
-  const extras = [
-    "Someone in Ohio bought the last one 0.2 seconds before you clicked.",
-    "Restock ETA: never.",
-    "We sold the last one to a guy who swears he just has really good audio.",
-    "ACE finally caught something: this checkout page.",
-    "Bartholomew zapped the warehouse.",
-    "If you wanted to pre-fire corners you could just… practice. Like bif. Allegedly.",
-  ];
+  const $ = (sel) => document.querySelector(sel);
+  const button = $("#tip-btn");
+  const amounts = document.querySelectorAll('input[name="amount"]');
 
   $("#year").textContent = new Date().getFullYear();
+  document.querySelectorAll(".tip-price[data-amount]").forEach((el) => {
+    el.textContent = `${CURRENCY_SYMBOL}${el.dataset.amount}`;
+  });
 
-  /* ---------- Order form ---------- */
-  const form = $("#checkout");
-  const { plan: planInput, sauce: sauceInput, pay: payInput } = form.elements;
-
-  // Pre-select whatever was clicked on the main page (buy.html?plan=bif&sauce=1)
-  const params = new URLSearchParams(location.search);
-  if (plans[params.get("plan")]) planInput.value = params.get("plan");
-  if (params.get("sauce") === "1") sauceInput.checked = true;
-
-  function updateSummary() {
-    const plan = plans[planInput.value];
-    $("#sum-plan").textContent = plan.name;
-    $("#sum-addon").textContent = sauceInput.checked ? "Nova's Secret Sauce" : "None";
-    $("#sum-pay").textContent = payNames[payInput.value];
-    $("#sum-total").textContent = plan.price + (sauceInput.checked ? " + ??? Koen" : "");
-  }
-  form.addEventListener("change", updateSummary);
-  updateSummary();
-
-  /* ---------- Out of stock ---------- */
-  const modal = $("#modal");
-  const stock = $("#stock");
-  const buyBtn = $("#buy-btn");
-  let lastFocus = null;
-
-  function openModal() {
-    lastFocus = document.activeElement;
-    modal.hidden = false;
-    document.body.style.overflow = "hidden";
-    modal.querySelector(".modal-card .btn").focus();
-  }
-  function closeModal() {
-    modal.hidden = true;
-    document.body.style.overflow = "";
-    if (lastFocus) lastFocus.focus();
-  }
-
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    // Counted (anonymously) for the "tried to buy a DMA" stat on the admin page.
+  // Anonymous counts for the admin stats page.
+  function track(event) {
     fetch("/api/track", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ event: "buy" }),
+      body: JSON.stringify({ event }),
       keepalive: true,
     }).catch(() => { /* stats are best-effort */ });
-    let body = plans[planInput.value].soldOut;
-    if (sauceInput.checked) body += " Nova's Secret Sauce is gone too. Nova used the last jar.";
-    body += payNotes[payInput.value];
-    $("#modal-body").textContent = body;
-    $("#modal-extra").textContent = pick(extras);
+  }
+  track("buy"); // someone pressed a Buy button and landed on "out of stock"
 
-    stock.classList.add("stock-out");
-    $("#stock-text").textContent = "Out of stock · Restock: never";
-    buyBtn.textContent = "Try again anyway";
-    openModal();
-  });
+  // paypal.me/name/5 opens PayPal with 5 filled in. Other PayPal links open as they are.
+  function tipUrl(amount) {
+    let url;
+    try {
+      url = new URL(PAYPAL_LINK);
+    } catch {
+      return null;
+    }
+    const host = url.hostname.replace(/^www\./, "");
+    if (amount !== "other" && (host === "paypal.me" || (host === "paypal.com" && url.pathname.startsWith("/paypalme/")))) {
+      url.pathname = `${url.pathname.replace(/\/+$/, "")}/${amount}`;
+    }
+    return url.toString();
+  }
 
-  modal.querySelectorAll("[data-close]").forEach((el) => el.addEventListener("click", closeModal));
-  document.addEventListener("keydown", (e) => {
-    if (e.key === "Escape" && !modal.hidden) closeModal();
+  function update() {
+    const amount = document.querySelector('input[name="amount"]:checked').value;
+    const href = tipUrl(amount);
+    if (!href) {
+      button.removeAttribute("href");
+      button.setAttribute("aria-disabled", "true");
+      button.textContent = "Tipping opens soon";
+      return;
+    }
+    button.href = href;
+    button.removeAttribute("aria-disabled");
+    button.textContent = amount === "other" ? "Tip on PayPal" : `Tip ${CURRENCY_SYMBOL}${amount} on PayPal`;
+  }
+
+  amounts.forEach((input) => input.addEventListener("change", update));
+  button.addEventListener("click", (e) => {
+    if (button.getAttribute("aria-disabled") === "true") {
+      e.preventDefault();
+      return;
+    }
+    track("tip");
   });
+  update();
 })();

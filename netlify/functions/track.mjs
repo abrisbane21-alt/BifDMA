@@ -1,11 +1,11 @@
 // Anonymous site counters for the admin stats, served at /api/track.
-//   POST {event: "view" | "buy" | "zap"}
+//   POST {event: "view" | "buy" | "tip" | "zap"}
 // Only counts are kept. A visitor is counted once per day using a salted hash of their IP.
 
 import { getStore } from "@netlify/blobs";
 import { dayKey, hash, json } from "../lib/shared.mjs";
 
-const EVENTS = { view: "views", buy: "buys", zap: "zaps" };
+const EVENTS = { view: "views", buy: "buys", tip: "tips", zap: "zaps" };
 
 export default async (req, context) => {
   const store = getStore({ name: "stats", consistency: "strong" });

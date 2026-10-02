@@ -171,7 +171,8 @@
         ["Page views, all time", number(s.views.total)],
       ]);
       tiles($("#tiles-jokes"), [
-        ["Tried to buy a DMA", number(s.buyAttempts), "Pressed Buy now on the store"],
+        ["Tried to buy a DMA", number(s.buyAttempts), "Pressed a Buy button and hit “out of stock”"],
+        ["Tip button presses", number(s.tipClicks || 0), "Opened PayPal to tip bif"],
         ["Bartholomew zaps", number(s.zaps)],
         ["Reviews on the wall", number(s.reviews)],
       ]);

@@ -17,7 +17,7 @@ their data lives in Netlify Blobs.
 | `site/index.html`                    | The main page (most of the jokes live here — edit freely)       |
 | `site/styles.css`                    | Styling for every page                                          |
 | `site/script.js`                     | Main page behaviour: games, reviews, clips, suggestion box, zap |
-| `site/buy.html`, `site/buy.js`       | Fake checkout page; every order ends in "Out of stock"          |
+| `site/buy.html`, `site/buy.js`       | Where every Buy button goes: "out of stock", then tip bif on PayPal |
 | `site/admin.html`, `site/admin.js`   | Admin mode (sign in with an admin key)                          |
 | `site/favicon.svg`, `site/og.png`    | Tab icon and the preview image used when the link is shared     |
 | `netlify/functions/reviews.mjs`      | `/api/reviews` — the reviews wall                               |
@@ -66,6 +66,23 @@ any clicks not sent yet), so the two always match. The rare 1-in-1,000 drop is a
 
 The board keeps the top 50 players; the page shows the top 20.
 
+## Tips (the buy page)
+
+Every Buy button on the main page leads to `buy.html`, which says the DMA is out of stock forever and
+then offers an optional tip for bif's content through PayPal, plus free ways to support him. It's
+worded so a tip can't be mistaken for buying anything.
+
+To switch tipping on, put bif's PayPal link at the top of `site/buy.js`:
+
+```js
+const PAYPAL_LINK = "https://paypal.me/HIS_NAME";
+```
+
+With a `paypal.me` link, the amount someone picks ($2, $5, $10, $25) is filled in on PayPal for them;
+"Other" lets them choose on PayPal. Any other PayPal link opens as it is. Until the link is set, the
+button reads "Tipping opens soon" and does nothing. Change `CURRENCY_SYMBOL` there too if his PayPal
+isn't in dollars. The site never handles the money; everything happens on PayPal.
+
 ## Admin mode
 
 `https://bifdma.org/admin.html` is the admin area. Nothing on the public site links to it.
@@ -86,7 +103,7 @@ What admins can do (the owner can do all of it too):
 
 | Tab           | What it does                                                                 |
 | ------------- | ---------------------------------------------------------------------------- |
-| Stats         | Visitors and page views (today, 7 days, all time, chart per day), how many people tried to buy a DMA, Bartholomew zaps, reviews, leaderboard players and reds, suggestions, clips, admins |
+| Stats         | Visitors and page views (today, 7 days, all time, chart per day), how many people tried to buy a DMA, tip button presses, Bartholomew zaps, reviews, leaderboard players and reds, suggestions, clips, admins |
 | Suggestions   | Read and delete what people sent through the suggestion box                  |
 | Clips         | Add clips by pasting a Twitch clip link (or YouTube link) plus a title; delete clips |
 | Reviews       | Delete reviews                                                               |
@@ -105,8 +122,8 @@ hidden until there's at least one clip.
 
 ### Stats and privacy
 
-The page sends an anonymous count when it's viewed, when someone presses Buy now on the store, and
-when Bartholomew zaps someone. Only totals per day are kept. A visitor is counted once per day
+The page sends an anonymous count when it's viewed, when someone lands on the out-of-stock page,
+when someone presses the PayPal tip button, and when Bartholomew zaps someone. Only totals per day are kept. A visitor is counted once per day
 using a salted hash of their IP address; the address itself is never stored.
 
 ## Putting it live on bifdma.org (Netlify + GoDaddy)
