@@ -147,12 +147,23 @@ the free plan.
 
 ### 2. Add the database (free)
 
-1. In the project, open the **Storage** tab → **Create Database** → **Upstash for Redis** (it may be
-   under **Marketplace Database Providers**) → pick the **Free** plan and a region near your viewers.
-2. Connect it to the project for all environments. Vercel adds the connection details as
-   environment variables by itself.
-3. Add `REVIEWS_ADMIN_KEY` (see [Admin mode](#admin-mode)); you can reuse the password you used before.
-4. Redeploy: **Deployments** → the newest one → **⋯** → **Redeploy**.
+Make the database on Upstash's own site; the free plan doesn't always show up when you add it from
+inside Vercel.
+
+1. Sign up at upstash.com (free, no card needed) and open the **Console**.
+2. **Redis** → **Create Database**. Name it `bifdma`, pick the **Free** plan, and choose the region
+   **US East (N. Virginia)**, which is next to where Vercel runs the site's functions. Click **Create**.
+3. On the database's page, find the **REST API** section and its **.env** tab. It shows two values:
+   `UPSTASH_REDIS_REST_URL` and `UPSTASH_REDIS_REST_TOKEN`. Keep the token private; it works like a
+   password for the data.
+4. In Vercel, open the project → **Settings** → **Environment Variables** and add both, with exactly
+   those names and the values from Upstash.
+5. Add `REVIEWS_ADMIN_KEY` there too (see [Admin mode](#admin-mode)); you can reuse the password you
+   used before.
+6. Redeploy: **Deployments** → the newest one → **⋯** → **Redeploy**.
+
+(Connecting Upstash from Vercel's **Storage** tab also works if it offers you the Free plan. It
+sets the same connection details for you.)
 
 The free database allows 500,000 commands a month. A page view uses about 4–9 and a
 leaderboard sync uses 4. If it ever runs out, the reviews, leaderboard and other live parts stop
