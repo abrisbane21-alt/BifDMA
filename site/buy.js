@@ -3,7 +3,7 @@
 
   // bif's PayPal link, e.g. "https://paypal.me/bifsterr". Leave empty to keep the tip button off.
   // With a paypal.me link the chosen amount is filled in for the tipper.
-  const PAYPAL_LINK = "";
+  const PAYPAL_LINK = "https://paypal.me/GunnyCod";
   const CURRENCY_SYMBOL = "$";
 
   const $ = (sel) => document.querySelector(sel);
