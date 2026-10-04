@@ -83,7 +83,7 @@
       me = await api("/api/admin?action=whoami");
     } catch (err) {
       me = null;
-      setStatus(err instanceof TypeError ? "Couldn't reach the server. Is the site deployed on Netlify?" : err.message, "err");
+      setStatus(err instanceof TypeError ? "Couldn't reach the server. Is the site deployed on Vercel?" : err.message, "err");
       return;
     }
     try { sessionStorage.setItem("bifdma-admin-key", adminKey); } catch { /* storage blocked */ }

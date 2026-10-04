@@ -4,10 +4,10 @@
 //   DELETE ?id=          remove a clip (admins only)
 // Clips are stored as links and play in Twitch's or YouTube's own player, so no video is hosted here.
 
-import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
-import { PRIVATE, clean, hasBlockedWords, json } from "../lib/shared.mjs";
+import { notAdmin, siteAuth } from "../lib/auth.js";
+import { PRIVATE, clean, clientIp, hasBlockedWords, json } from "../lib/shared.js";
+import { getStore } from "../lib/store.js";
 
 const MAX_TITLE = 80;
 const MAX_CLIPS = 60;
@@ -15,14 +15,13 @@ const ID_PATTERN = /^\d{13}-[a-f0-9]{8}$/;
 const TWITCH_SLUG = /^[A-Za-z0-9_-]{3,100}$/;
 const YOUTUBE_ID = /^[A-Za-z0-9_-]{11}$/;
 
-export default async (req, context) => {
-  const store = getStore({ name: "clips", consistency: "strong" });
-  return handleRequest(req, context, store, netlifyAuth());
-};
+// Vercel calls the exported function named after the request method.
+const handle = (req) => handleRequest(req, { ip: clientIp(req) }, getStore("clips"), siteAuth());
+export const GET = handle;
+export const POST = handle;
+export const DELETE = handle;
 
-export const config = { path: "/api/clips" };
-
-// Kept separate from the default export so it can be tested with an in-memory store.
+// Kept separate from the exports above so it can be tested with an in-memory store.
 export async function handleRequest(req, context, store, auth) {
   try {
     if (req.method === "GET") return await listClips(store);
@@ -41,10 +40,10 @@ export async function handleRequest(req, context, store, auth) {
 async function listClips(store) {
   const { blobs } = await store.list({ prefix: "clip/" });
   const keys = blobs.map((b) => b.key).sort().reverse().slice(0, MAX_CLIPS);
-  const clips = (await Promise.all(keys.map((key) => store.get(key, { type: "json" })))).filter(Boolean);
+  const clips = (await store.getMany(keys)).filter(Boolean);
   return json({ clips: clips.map(({ addedBy, ...clip }) => clip) }, 200, {
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "Netlify-CDN-Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
+    "Vercel-CDN-Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
   });
 }
 

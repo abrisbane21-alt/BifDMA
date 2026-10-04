@@ -9,8 +9,8 @@ payment form.
 
 ## Files
 
-The website is in `site/`. The APIs behind it are Netlify Functions in `netlify/functions/`, and
-their data lives in Netlify Blobs.
+The website is in `site/`. The APIs behind it are Vercel Functions in `api/`, and their data lives
+in an Upstash Redis database connected to the Vercel project.
 
 | File                                 | What it is                                                      |
 | ------------------------------------ | --------------------------------------------------------------- |
@@ -20,19 +20,20 @@ their data lives in Netlify Blobs.
 | `site/buy.html`, `site/buy.js`       | Where every Buy button goes: "out of stock", then tip bif on PayPal |
 | `site/admin.html`, `site/admin.js`   | Admin mode (sign in with an admin key)                          |
 | `site/favicon.svg`, `site/og.png`    | Tab icon and the preview image used when the link is shared     |
-| `netlify/functions/reviews.mjs`      | `/api/reviews` — the reviews wall                               |
-| `netlify/functions/safe.mjs`         | `/api/safe` — the Safe Simulator leaderboard                    |
-| `netlify/functions/clips.mjs`        | `/api/clips` — clips admins add                                 |
-| `netlify/functions/feedback.mjs`     | `/api/feedback` — the suggestion box (only admins can read it)  |
-| `netlify/functions/track.mjs`        | `/api/track` — anonymous counts for the admin stats             |
-| `netlify/functions/admin.mjs`        | `/api/admin` — sign-in check, site stats, managing admins       |
-| `netlify/lib/auth.mjs`               | Works out whether a request comes from the owner or an admin    |
-| `netlify/lib/shared.mjs`             | Word filter and other helpers the APIs share                    |
-| `netlify.toml`, `package.json`       | Tells Netlify where the site and functions are                  |
+| `api/reviews.js`                     | `/api/reviews` — the reviews wall                               |
+| `api/safe.js`                        | `/api/safe` — the Safe Simulator leaderboard                    |
+| `api/clips.js`                       | `/api/clips` — clips admins add                                 |
+| `api/feedback.js`                    | `/api/feedback` — the suggestion box (only admins can read it)  |
+| `api/track.js`                       | `/api/track` — anonymous counts for the admin stats             |
+| `api/admin.js`                       | `/api/admin` — sign-in check, site stats, managing admins       |
+| `lib/store.js`                       | Reads and writes the data in Upstash Redis                      |
+| `lib/auth.js`                        | Works out whether a request comes from the owner or an admin    |
+| `lib/shared.js`                      | Word filter and other helpers the APIs share                    |
+| `vercel.json`, `package.json`        | Tell Vercel to publish `site/` and run the functions in `api/`  |
 
 To preview the pages locally, run `python3 -m http.server` inside `site/` and visit
 http://localhost:8000. Anything that needs the APIs (reviews, leaderboard, clips, suggestions,
-admin mode) only works on Netlify, so locally it shows a "couldn't load" message.
+admin mode) only works once deployed on Vercel, so locally it shows a "couldn't load" message.
 
 ## Reviews
 
@@ -60,6 +61,9 @@ Clicks happen in the browser, so the API limits how fast a score can grow:
 - new players carry over at most 1,000 reds from before they joined,
 - one new name every 2 minutes from the same connection,
 - every sync is numbered, so a batch resent after the page closed is never counted twice.
+
+Clicks are sent in batches (at most every 10 seconds, and when the visitor leaves) and the board
+refreshes once a minute while the page is open, which keeps the database well inside its free plan.
 
 Once a player has joined, the "Reds found" counter on the page shows their leaderboard score (plus
 any clicks not sent yet), so the two always match. The rare 1-in-1,000 drop is a purple item.
@@ -89,9 +93,9 @@ isn't in dollars. The site never handles the money; everything happens on PayPal
 
 **The owner** signs in with the owner key. To set it up once:
 
-1. In Netlify, open the site → **Site configuration** (may be called **Project configuration**) →
-   **Environment variables** → **Add a variable**. Name it `REVIEWS_ADMIN_KEY` and set the value to a
-   long password only you know. Then trigger a new deploy (**Deploys** → **Trigger deploy**).
+1. In Vercel, open the project → **Settings** → **Environment Variables**. Add one named
+   `REVIEWS_ADMIN_KEY` with a long password only you know as the value. Then redeploy
+   (**Deployments** → the newest one → **⋯** → **Redeploy**) so the site picks it up.
 2. Go to `admin.html` and sign in with that password.
 
 **Making someone an admin:** as the owner, open the **Admins** tab, type their name and press
@@ -115,7 +119,7 @@ Until `REVIEWS_ADMIN_KEY` is set, nobody can sign in.
 ### Clips
 
 Clips are stored as links and play in Twitch's or YouTube's own player when someone presses play,
-so no video is hosted on the site (Netlify functions can't take uploads over ~6 MB anyway). They
+so no video is hosted on the site (the functions can't take uploads over ~4 MB anyway). They
 appear in the "killcam" player just below the top of the main page, with the newest clip first as
 "Exhibit A" and the rest in the evidence log beside it. The section (and its menu link) stays
 hidden until there's at least one clip.
@@ -126,36 +130,69 @@ The page sends an anonymous count when it's viewed, when someone lands on the ou
 when someone presses the PayPal tip button, and when Bartholomew zaps someone. Only totals per day are kept. A visitor is counted once per day
 using a salted hash of their IP address; the address itself is never stored.
 
-## Putting it live on bifdma.org (Netlify + GoDaddy)
+## Putting it live on bifdma.org (Vercel + GoDaddy)
 
-The site is hosted on Netlify from this repo, so the repo can stay private. Every push to the deployed
-branch updates the site automatically.
+The site is hosted on Vercel's free (Hobby) plan from this repo, so the repo can stay private. Every
+push to the repo's default branch updates the site automatically. Pushes don't cost anything (the
+free plan allows 100 deploys a day). Asking for donations, like the tip page does, is allowed on
+the free plan.
 
-### 1. Create the Netlify site
+### 1. Create the Vercel project
 
-1. Sign up at netlify.com (the free plan is enough) and choose **Add new site** → **Import an existing
-   project** → **GitHub**, then pick this repo.
-2. Pick the branch the site is on and click **Deploy**. You don't need to fill in any build settings:
-   `netlify.toml` tells Netlify to publish the `site/` folder and where the reviews function is.
-3. In the site's configuration, change the site name to something neutral like `bifdma`, which gives
-   the address `bifdma.netlify.app`.
+1. Sign up at vercel.com with **Continue with GitHub**.
+2. Choose **Add New…** → **Project**, and import this repo. If it isn't listed, choose
+   **Adjust GitHub App Permissions** and give Vercel access to it.
+3. Set **Project Name** to `bifdma` and leave every other setting as it is. `vercel.json` already
+   tells Vercel to publish `site/` and run the functions in `api/`. Click **Deploy**.
 
-### 2. Add the domain in Netlify
+### 2. Add the database (free)
 
-Open **Domain management** → **Add a domain**, enter `bifdma.org`, and confirm. Choose to keep DNS at
-your current provider, not Netlify DNS. Netlify then shows the records to add in GoDaddy.
+1. In the project, open the **Storage** tab → **Create Database** → **Upstash for Redis** (it may be
+   under **Marketplace Database Providers**) → pick the **Free** plan and a region near your viewers.
+2. Connect it to the project for all environments. Vercel adds the connection details as
+   environment variables by itself.
+3. Add `REVIEWS_ADMIN_KEY` (see [Admin mode](#admin-mode)); you can reuse the password you used before.
+4. Redeploy: **Deployments** → the newest one → **⋯** → **Redeploy**.
 
-### 3. Point the domain at Netlify (GoDaddy)
+The free database allows 500,000 commands a month. A page view uses about 4–9 and a
+leaderboard sync uses 4. If it ever runs out, the reviews, leaderboard and other live parts stop
+working until the next month, but the rest of the site stays up.
+
+### 3. Add the domain in Vercel
+
+Open **Settings** → **Domains** → **Add Domain**, enter `bifdma.org`, and accept the suggestion to
+add `www.bifdma.org` too. Vercel then shows the DNS records to add in GoDaddy.
+
+### 4. Point the domain at Vercel (GoDaddy)
 
 In GoDaddy, go to **My Products** → **bifdma.org** → **DNS**. Then:
 
-1. **Delete** the `A` record for `@` that says "Parked", and any Forwarding on the domain.
-2. **Add** the records below. If Netlify's screen shows different values, use Netlify's.
+1. **Delete** the old records that pointed at Netlify: the `A` record for `@` (`75.2.60.5`) and the
+   `CNAME` for `www` (ending in `netlify.app`). Also delete any "Parked" `A` record or Forwarding.
+2. **Add** the records Vercel shows. They usually look like this; if Vercel's screen shows
+   different values, use Vercel's.
 
-   | Type  | Name | Value                   |
-   | ----- | ---- | ----------------------- |
-   | A     | @    | 75.2.60.5               |
-   | CNAME | www  | `<site-name>.netlify.app` |
+   | Type  | Name | Value                  |
+   | ----- | ---- | ---------------------- |
+   | A     | @    | 76.76.21.21            |
+   | CNAME | www  | cname.vercel-dns.com   |
 
-DNS usually updates within an hour, but it can take up to 24–48 hours. Netlify sets up HTTPS on its own
-once the domain is working.
+DNS usually updates within an hour, but it can take up to 24–48 hours. Vercel sets up HTTPS on its
+own once the domain is working.
+
+Visitors only ever see `bifdma.org`. Vercel's preview links (for example in GitHub) include your
+account name, but they're private to you by default.
+
+### 5. Turn off Netlify
+
+Once bifdma.org loads from Vercel, delete the old Netlify site (**Project configuration** →
+**General** → **Delete project**). Otherwise Netlify keeps trying to deploy every push when its
+credits reset.
+
+### Moving from Netlify: what resets
+
+The data on Netlify (reviews people posted, the leaderboard, suggestions, clips, admins and
+stats) doesn't come across. The joke reviews written into the page are unaffected. Players keep
+the reds counted in their browser. The page tells them the board was reset and fills in their old
+name so they can rejoin in one click (with the usual 1,000-red carry-over limit). Admins need new
+keys from the **Admins** tab, and clips need adding again.

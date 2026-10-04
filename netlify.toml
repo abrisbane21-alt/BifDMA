@@ -1,7 +1,0 @@
-# The website lives in site/. The reviews API is a Netlify Function.
-[build]
-  publish = "site"
-
-[functions]
-  directory = "netlify/functions"
-  node_bundler = "esbuild"

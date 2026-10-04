@@ -9,10 +9,10 @@
 // honest-ish it only accepts up to MAX_PER_SEC reds per second of real time, and
 // caps what a new player can carry over when joining.
 
-import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
-import { clean, hash, isBlocked, json } from "../lib/shared.mjs";
+import { notAdmin, siteAuth } from "../lib/auth.js";
+import { clean, clientIp, hash, isBlocked, json } from "../lib/shared.js";
+import { getStore } from "../lib/store.js";
 
 const BOARD_SIZE = 50;
 const DEFAULT_LIMIT = 20;
@@ -21,18 +21,18 @@ const MAX_WINDOW_MS = 60_000;
 const JOIN_CARRY_REDS = 1000;
 const JOIN_CARRY_PURPLES = 5;
 const JOIN_COOLDOWN_MS = 2 * 60_000;
+const JOIN_COOLDOWN_TTL = 3600; // seconds the cooldown record is kept
 const NAME_PATTERN = /^[A-Za-z0-9 _.-]{2,20}$/;
 const ID_PATTERN = /^[a-f0-9]{16}$/;
 const RESERVED = new Set(["bif", "bifsterr", "nova", "bartholomew", "admin", "moderator", "bifdma"]);
 
-export default async (req, context) => {
-  const store = getStore({ name: "safe-sim", consistency: "strong" });
-  return handleRequest(req, context, store, netlifyAuth());
-};
+// Vercel calls the exported function named after the request method.
+const handle = (req) => handleRequest(req, { ip: clientIp(req) }, getStore("safe-sim"), siteAuth());
+export const GET = handle;
+export const POST = handle;
+export const DELETE = handle;
 
-export const config = { path: "/api/safe" };
-
-// Kept separate from the default export so it can be tested with an in-memory store.
+// Kept separate from the exports above so it can be tested with an in-memory store.
 // auth(req) resolves to the signed-in admin or null.
 export async function handleRequest(req, context, store, auth) {
   try {
@@ -59,11 +59,11 @@ export async function handleRequest(req, context, store, auth) {
 async function getBoard(req, store) {
   const requested = Number(new URL(req.url).searchParams.get("limit")) || DEFAULT_LIMIT;
   const limit = Math.min(Math.max(requested, 1), BOARD_SIZE);
-  const board = (await store.get("board", { type: "json" })) || { players: [] };
+  const board = (await store.get("board")) || { players: [] };
   const players = board.players.slice(0, limit).map((p, i) => ({ rank: i + 1, name: p.name, reds: p.reds, purples: purplesOf(p) }));
   return json({ players }, 200, {
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "Netlify-CDN-Cache-Control": "public, s-maxage=5, stale-while-revalidate=30",
+    "Vercel-CDN-Cache-Control": "public, s-maxage=10, stale-while-revalidate=30",
   });
 }
 
@@ -81,7 +81,7 @@ async function join(body, context, store) {
   }
 
   const ipKey = `joinip/${hash(context?.ip || "unknown")}`;
-  const lastJoin = await store.get(ipKey, { type: "json" });
+  const lastJoin = await store.get(ipKey);
   if (lastJoin && Date.now() - lastJoin.at < JOIN_COOLDOWN_MS) {
     return json({ error: "You just joined. Wait a couple of minutes before making another name." }, 429);
   }
@@ -111,7 +111,7 @@ async function join(body, context, store) {
     await store.delete(nameKey(name)); // don't leave the name claimed by nobody
     throw err;
   }
-  await store.setJSON(ipKey, { at: now });
+  await store.setJSON(ipKey, { at: now }, { ttl: JOIN_COOLDOWN_TTL });
   const board = await updateBoard(store, player);
 
   return json({
@@ -133,7 +133,7 @@ async function sync(body, store) {
   if (!Number.isSafeInteger(seq) || seq < 1) return json({ error: "Missing sync number." }, 400);
 
   for (let attempt = 0; attempt < 5; attempt++) {
-    const current = await store.getWithMetadata(`player/${id}`, { type: "json" });
+    const current = await store.getWithMetadata(`player/${id}`);
     if (!current) return json({ error: "Unknown player." }, 404);
     const player = current.data;
     const purplesSoFar = purplesOf(player);
@@ -165,7 +165,7 @@ async function sync(body, store) {
 async function removePlayer(req, store, auth) {
   if (!(await auth(req))) return notAdmin();
   const name = clean(new URL(req.url).searchParams.get("name"), 20);
-  const entry = name && (await store.get(nameKey(name), { type: "json" }));
+  const entry = name && (await store.get(nameKey(name)));
   if (!entry) return json({ error: "No player with that name." }, 404);
 
   await store.delete(`player/${entry.id}`);
@@ -174,7 +174,7 @@ async function removePlayer(req, store, auth) {
   return json({ deleted: name }, 200);
 }
 
-// Keeps the top BOARD_SIZE players in one blob so reading the board is a single request.
+// Keeps the top BOARD_SIZE players under one key so reading the board is a single request.
 async function updateBoard(store, player) {
   const entry = { id: player.id, name: player.name, reds: player.reds, purples: purplesOf(player), at: Date.now() };
   return editBoard(store, (players) => {
@@ -190,7 +190,7 @@ async function updateBoard(store, player) {
 // change returns the new list, or null for "no change".
 async function editBoard(store, change) {
   for (let attempt = 0; attempt < 8; attempt++) {
-    const current = await store.getWithMetadata("board", { type: "json" });
+    const current = await store.getWithMetadata("board");
     const players = current?.data?.players || [];
     const next = change(players);
     if (!next) return players;
@@ -203,7 +203,7 @@ async function editBoard(store, change) {
 }
 
 async function readBoard(store) {
-  return ((await store.get("board", { type: "json" })) || { players: [] }).players;
+  return ((await store.get("board")) || { players: [] }).players;
 }
 
 function byScore(a, b) {

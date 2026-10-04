@@ -2,12 +2,12 @@
 //   GET                      latest reviews, newest first (?limit=, max 200)
 //   POST {name,stars,text}   add a review
 //   DELETE ?id=              remove a review (admins only: x-admin-key header)
-// Reviews are kept in Netlify Blobs, one blob per review.
+// Each review is its own key in the "reviews" store.
 
-import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
-import { clean, hash, isBlocked, json } from "../lib/shared.mjs";
+import { notAdmin, siteAuth } from "../lib/auth.js";
+import { clean, clientIp, hash, isBlocked, json } from "../lib/shared.js";
+import { getStore } from "../lib/store.js";
 
 const MAX_NAME = 30;
 const MAX_TEXT = 280;
@@ -15,16 +15,16 @@ const MIN_TEXT = 3;
 const DEFAULT_LIMIT = 30;
 const MAX_LIMIT = 200;
 const COOLDOWN_MS = 60_000;
+const COOLDOWN_TTL = 3600; // seconds the cooldown record is kept
 const ID_PATTERN = /^\d{13}-[a-f0-9]{8}$/;
 
-export default async (req, context) => {
-  const store = getStore({ name: "reviews", consistency: "strong" });
-  return handleRequest(req, context, store, netlifyAuth());
-};
+// Vercel calls the exported function named after the request method.
+const handle = (req) => handleRequest(req, { ip: clientIp(req) }, getStore("reviews"), siteAuth());
+export const GET = handle;
+export const POST = handle;
+export const DELETE = handle;
 
-export const config = { path: "/api/reviews" };
-
-// Kept separate from the default export so it can be tested with an in-memory store.
+// Kept separate from the exports above so it can be tested with an in-memory store.
 // auth(req) resolves to the signed-in admin or null.
 export async function handleRequest(req, context, store, auth) {
   try {
@@ -44,10 +44,10 @@ async function listReviews(req, store) {
   const { blobs } = await store.list({ prefix: "review/" });
   // Keys start with a millisecond timestamp, so sorting them sorts by date.
   const keys = blobs.map((b) => b.key).sort().reverse().slice(0, limit);
-  const reviews = (await Promise.all(keys.map((key) => store.get(key, { type: "json" })))).filter(Boolean);
+  const reviews = (await store.getMany(keys)).filter(Boolean);
   return json({ reviews }, 200, {
     "Cache-Control": "public, max-age=0, must-revalidate",
-    "Netlify-CDN-Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
+    "Vercel-CDN-Cache-Control": "public, s-maxage=15, stale-while-revalidate=60",
   });
 }
 
@@ -78,7 +78,7 @@ async function addReview(req, context, store) {
   }
 
   const ipKey = `ip/${hash(context?.ip || "unknown")}`;
-  const last = await store.get(ipKey, { type: "json" });
+  const last = await store.get(ipKey);
   if (last && Date.now() - last.at < COOLDOWN_MS) {
     return json({ error: "One review a minute. Even Bartholomew has to wait." }, 429);
   }
@@ -92,7 +92,7 @@ async function addReview(req, context, store) {
     at: new Date(now).toISOString(),
   };
   await store.setJSON(`review/${review.id}`, review);
-  await store.setJSON(ipKey, { at: now });
+  await store.setJSON(ipKey, { at: now }, { ttl: COOLDOWN_TTL });
   return json({ review }, 201);
 }
 

@@ -3,25 +3,25 @@
 //   GET                 list suggestions, newest first (admins only)
 //   DELETE ?id=         remove a suggestion (admins only)
 
-import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
-import { PRIVATE, clean, hasBlockedWords, hash, json } from "../lib/shared.mjs";
+import { notAdmin, siteAuth } from "../lib/auth.js";
+import { PRIVATE, clean, clientIp, hasBlockedWords, hash, json } from "../lib/shared.js";
+import { getStore } from "../lib/store.js";
 
 const MAX_TEXT = 500;
 const MIN_TEXT = 5;
 const MAX_NAME = 30;
 const COOLDOWN_MS = 60_000;
+const COOLDOWN_TTL = 3600; // seconds the cooldown record is kept
 const ID_PATTERN = /^\d{13}-[a-f0-9]{8}$/;
 
-export default async (req, context) => {
-  const store = getStore({ name: "feedback", consistency: "strong" });
-  return handleRequest(req, context, store, netlifyAuth());
-};
+// Vercel calls the exported function named after the request method.
+const handle = (req) => handleRequest(req, { ip: clientIp(req) }, getStore("feedback"), siteAuth());
+export const GET = handle;
+export const POST = handle;
+export const DELETE = handle;
 
-export const config = { path: "/api/feedback" };
-
-// Kept separate from the default export so it can be tested with an in-memory store.
+// Kept separate from the exports above so it can be tested with an in-memory store.
 export async function handleRequest(req, context, store, auth) {
   try {
     if (req.method === "POST") return await addFeedback(req, context, store);
@@ -52,7 +52,7 @@ async function addFeedback(req, context, store) {
   if (hasBlockedWords(text) || hasBlockedWords(name)) return json({ error: "Keep it friendly." }, 400);
 
   const ipKey = `ip/${hash(context?.ip || "unknown")}`;
-  const last = await store.get(ipKey, { type: "json" });
+  const last = await store.get(ipKey);
   if (last && Date.now() - last.at < COOLDOWN_MS) {
     return json({ error: "One suggestion a minute. The admins read them all, promise." }, 429);
   }
@@ -60,14 +60,14 @@ async function addFeedback(req, context, store) {
   const now = Date.now();
   const id = `${String(now).padStart(13, "0")}-${randomBytes(4).toString("hex")}`;
   await store.setJSON(`feedback/${id}`, { id, name, text, at: new Date(now).toISOString() });
-  await store.setJSON(ipKey, { at: now });
+  await store.setJSON(ipKey, { at: now }, { ttl: COOLDOWN_TTL });
   return json({ ok: true }, 201);
 }
 
 async function listFeedback(store) {
   const { blobs } = await store.list({ prefix: "feedback/" });
   const keys = blobs.map((b) => b.key).sort().reverse().slice(0, 500);
-  const feedback = (await Promise.all(keys.map((key) => store.get(key, { type: "json" })))).filter(Boolean);
+  const feedback = (await store.getMany(keys)).filter(Boolean);
   return json({ feedback }, 200, PRIVATE);
 }
 

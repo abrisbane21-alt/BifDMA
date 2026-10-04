@@ -362,6 +362,8 @@
   let myRank = null;
   let syncTimer = null;
   let syncing = false;
+  const SYNC_DELAY_MS = 10_000; // finds are sent in batches to keep server use low
+  const BOARD_REFRESH_MS = 60_000;
 
   try { player = JSON.parse(localStorage.getItem(PLAYER_KEY)); } catch { /* storage blocked */ }
   if (!player || !/^[a-f0-9]{16}$/.test(player.id) || typeof player.token !== "string") {
@@ -447,7 +449,7 @@
 
   function queueSync() {
     if (!player || syncTimer) return;
-    syncTimer = setTimeout(syncNow, 3000);
+    syncTimer = setTimeout(syncNow, SYNC_DELAY_MS);
   }
 
   // Sends the reds/purples found since the last sync. keepalive lets it finish while the page closes;
@@ -473,10 +475,12 @@
         keepalive,
       });
       if (res.status === 401 || res.status === 404) {
+        const oldName = player.name;
         player = null;
         savePlayer();
         renderMe();
-        setBoardStatus("Your name was removed from the leaderboard. Join again with a new one.", "err");
+        boardForm.elements.name.value = oldName;
+        setBoardStatus("Your name isn't on the leaderboard any more (it was removed or the board was reset). Join again to get back on it.", "err");
         return;
       }
       if (!res.ok) throw new Error(res.status);
@@ -540,7 +544,7 @@
   renderMe();
   loadBoard();
   if (player) syncNow(false, true);
-  setInterval(() => { if (!document.hidden) loadBoard(); }, 20000);
+  setInterval(() => { if (!document.hidden) loadBoard(); }, BOARD_REFRESH_MS);
 
   /* ---------- Fake "recent purchase" toasts ---------- */
   const toast = $("#toast");

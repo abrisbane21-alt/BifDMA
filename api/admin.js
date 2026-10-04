@@ -5,31 +5,32 @@
 //   POST {action:"create-admin", name}  make someone an admin; returns their key once (owner only)
 //   DELETE ?id=                      revoke an admin (owner only)
 
-import { getStore } from "@netlify/blobs";
 import { randomBytes } from "node:crypto";
-import { netlifyAuth, notAdmin } from "../lib/auth.mjs";
-import { PRIVATE, clean, dayKey, hash, isBlocked, json } from "../lib/shared.mjs";
+import { notAdmin, siteAuth } from "../lib/auth.js";
+import { PRIVATE, clean, clientIp, dayKey, hash, isBlocked, json } from "../lib/shared.js";
+import { getStore } from "../lib/store.js";
 
 const ID_PATTERN = /^[a-f0-9]{16}$/;
 const STAT_DAYS = 7;
 const MAX_PLAYERS_SUMMED = 2000;
 
-export default async (req, context) => {
-  const store = (name) => getStore({ name, consistency: "strong" });
+// Vercel calls the exported function named after the request method.
+const handle = (req) => {
   const stores = {
-    admins: store("admins"),
-    stats: store("stats"),
-    reviews: store("reviews"),
-    safe: store("safe-sim"),
-    feedback: store("feedback"),
-    clips: store("clips"),
+    admins: getStore("admins"),
+    stats: getStore("stats"),
+    reviews: getStore("reviews"),
+    safe: getStore("safe-sim"),
+    feedback: getStore("feedback"),
+    clips: getStore("clips"),
   };
-  return handleRequest(req, context, stores, netlifyAuth());
+  return handleRequest(req, { ip: clientIp(req) }, stores, siteAuth());
 };
+export const GET = handle;
+export const POST = handle;
+export const DELETE = handle;
 
-export const config = { path: "/api/admin" };
-
-// Kept separate from the default export so it can be tested with in-memory stores.
+// Kept separate from the exports above so it can be tested with in-memory stores.
 export async function handleRequest(req, context, stores, auth) {
   try {
     const me = await auth(req);
@@ -53,7 +54,7 @@ export async function handleRequest(req, context, stores, auth) {
 
 async function listAdmins(adminStore) {
   const { blobs } = await adminStore.list({ prefix: "admin/" });
-  const admins = await Promise.all(blobs.map((b) => adminStore.get(b.key, { type: "json" })));
+  const admins = await adminStore.getMany(blobs.map((b) => b.key));
   return admins
     .filter(Boolean)
     .map(({ id, name, createdAt }) => ({ id, name, createdAt }))
@@ -88,7 +89,7 @@ async function createAdmin(req, adminStore) {
 async function revokeAdmin(req, adminStore) {
   const id = new URL(req.url).searchParams.get("id") || "";
   if (!ID_PATTERN.test(id)) return json({ error: "Unknown admin." }, 400, PRIVATE);
-  const admin = await adminStore.get(`admin/${id}`, { type: "json" });
+  const admin = await adminStore.get(`admin/${id}`);
   if (!admin) return json({ error: "Unknown admin." }, 404, PRIVATE);
   await adminStore.delete(`key/${admin.keyHash}`);
   await adminStore.delete(`admin/${id}`);
@@ -97,7 +98,7 @@ async function revokeAdmin(req, adminStore) {
 
 async function siteStats(stores) {
   const count = async (store, prefix) => (await store.list({ prefix })).blobs.length;
-  const counter = async (key) => (await stores.stats.get(key, { type: "json" }))?.n || 0;
+  const counter = async (key) => Number(await stores.stats.get(key)) || 0;
 
   const days = Array.from({ length: STAT_DAYS }, (_, i) => dayKey(i)).reverse(); // oldest first
   const byDay = await Promise.all(days.map(async (day) => ({
@@ -107,10 +108,8 @@ async function siteStats(stores) {
   })));
 
   const { blobs: playerBlobs } = await stores.safe.list({ prefix: "player/" });
-  const players = await Promise.all(
-    playerBlobs.slice(0, MAX_PLAYERS_SUMMED).map((b) => stores.safe.get(b.key, { type: "json" })),
-  );
-  const board = (await stores.safe.get("board", { type: "json" }))?.players || [];
+  const players = await stores.safe.getMany(playerBlobs.slice(0, MAX_PLAYERS_SUMMED).map((b) => b.key));
+  const board = (await stores.safe.get("board"))?.players || [];
 
   const [viewsTotal, buys, tips, zaps, reviews, feedback, clips, admins] = await Promise.all([
     counter("total/views"),
