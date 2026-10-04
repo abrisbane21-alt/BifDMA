@@ -26,6 +26,7 @@ in an Upstash Redis database connected to the Vercel project.
 | `api/feedback.js`                    | `/api/feedback` — the suggestion box (only admins can read it)  |
 | `api/track.js`                       | `/api/track` — anonymous counts for the admin stats             |
 | `api/admin.js`                       | `/api/admin` — sign-in check, site stats, managing admins       |
+| `api/import.js`                      | `/api/import` — one-off copy of the old data from Netlify       |
 | `lib/store.js`                       | Reads and writes the data in Upstash Redis                      |
 | `lib/auth.js`                        | Works out whether a request comes from the owner or an admin    |
 | `lib/shared.js`                      | Word filter and other helpers the APIs share                    |
@@ -200,10 +201,33 @@ Once bifdma.org loads from Vercel, delete the old Netlify site (**Project config
 **General** → **Delete project**). Otherwise Netlify keeps trying to deploy every push when its
 credits reset.
 
-### Moving from Netlify: what resets
+### Bringing back the old data from Netlify
 
-The data on Netlify (reviews people posted, the leaderboard, suggestions, clips, admins and
-stats) doesn't come across. The joke reviews written into the page are unaffected. Players keep
-the reds counted in their browser. The page tells them the board was reset and fills in their old
-name so they can rejoin in one click (with the usual 1,000-red carry-over limit). Admins need new
-keys from the **Admins** tab, and clips need adding again.
+The reviews people posted, the leaderboard, suggestions, clips, admins and stats from the Netlify
+days stay on Netlify until you import them. The owner can copy them across in one go:
+
+1. **Netlify site ID:** in Netlify, open the old site → **Project configuration** → **General** →
+   **Project details** and copy the **Project ID** (older screens call it **Site ID**).
+2. **Netlify token:** click your avatar → **User settings** → **Applications** → **Personal access
+   tokens** → **New access token**. Give it a short expiry (a day is plenty) and copy it.
+3. In Vercel → **Settings** → **Environment Variables**, add `NETLIFY_SITE_ID` and `NETLIFY_TOKEN`
+   with those values, then redeploy.
+4. Sign in to `admin.html` as the owner, open **Admins** and press **Import from Netlify**.
+5. Afterwards, delete `NETLIFY_TOKEN` from Vercel and the token in Netlify.
+
+What the import does:
+
+- Reviews, suggestions and clips are added next to anything posted since the move.
+- Leaderboard players get their names and scores back, and their browsers reconnect by themselves.
+  This includes players whose page has shown "Your name isn't on the leaderboard any more" since
+  the import button was added (the page keeps their old key for this). If someone already rejoined with their old name, their old score is added to the
+  new one, minus the 1,000 reds they carried over when rejoining.
+- Admins get their old keys back, unless an admin with the same name was made since the move.
+- Stats from before the move are added to the counts since.
+- Pressing it again doesn't copy anything twice.
+
+If you set `REVIEWS_SALT` on Netlify, set the same value on Vercel before importing, or old player
+names and admin keys won't match.
+
+Before the import, the joke reviews written into the page are unaffected. Players keep the reds
+counted in their browser, and the page fills in their old name so they can rejoin.

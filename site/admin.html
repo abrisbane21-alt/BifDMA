@@ -142,6 +142,16 @@
             </div>
           </div>
           <ul class="admin-people" id="admin-list"></ul>
+
+          <div class="admin-card import-card">
+            <h3>Bring back the old data from Netlify</h3>
+            <p class="muted small">
+              Copies the old reviews, leaderboard, suggestions, clips, admins and stats into this site.
+              Anything added since the move is kept, and running it twice doesn't copy anything twice.
+              Needs <code>NETLIFY_SITE_ID</code> and <code>NETLIFY_TOKEN</code> set in Vercel (see the README).
+            </p>
+            <button class="btn btn-primary" type="button" id="import-btn">Import from Netlify</button>
+          </div>
         </section>
       </div>
     </div>

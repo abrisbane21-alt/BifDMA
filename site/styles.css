@@ -1521,6 +1521,9 @@ details p { margin: 0; padding: 0 22px 20px; color: var(--muted); }
 .admin-add { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
 .clip-form .field { flex: 1 1 260px; margin: 0; }
 .admin-add .field { flex: 1 1 240px; margin: 0; }
+.import-card { margin-top: 28px; }
+.import-card h3 { margin: 0 0 8px; font-size: 1.05rem; }
+.import-card p { margin: 0 0 14px; }
 .clip-link { display: inline-block; margin: 0 0 4px; font-family: var(--font-mono); font-size: 0.8rem; overflow-wrap: anywhere; }
 
 /* Stat tiles: label, value (proportional figures), optional note */

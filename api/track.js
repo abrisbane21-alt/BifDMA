@@ -6,7 +6,7 @@ import { clientIp, dayKey, hash, json } from "../lib/shared.js";
 import { getStore } from "../lib/store.js";
 
 const EVENTS = { view: "views", buy: "buys", tip: "tips", zap: "zaps" };
-const DAY_TTL = 40 * 86_400; // daily counts are kept 40 days; the admin page shows the last 7
+export const DAY_TTL = 40 * 86_400; // daily counts are kept 40 days; the admin page shows the last 7
 const SEEN_TTL = 2 * 86_400;
 
 // Vercel calls the exported function named after the request method.

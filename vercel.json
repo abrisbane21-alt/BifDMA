@@ -1,5 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": null,
-  "outputDirectory": "site"
+  "outputDirectory": "site",
+  "functions": {
+    "api/import.js": {
+      "maxDuration": 60
+    }
+  }
 }

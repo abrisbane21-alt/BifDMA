@@ -489,6 +489,26 @@
     }
   });
 
+  $("#import-btn").addEventListener("click", async (e) => {
+    const button = e.currentTarget;
+    if (!confirm("Copy the old data from Netlify into this site?")) return;
+    button.disabled = true;
+    setStatus("Importing from Netlify. This can take up to a minute…");
+    try {
+      const { imported: n } = await api("/api/import", { method: "POST" });
+      const players = n.merged
+        ? `${plural(n.players + n.merged, "leaderboard player")} (${n.merged} added to a name rejoined since the move)`
+        : plural(n.players, "leaderboard player");
+      setStatus(`Imported ${plural(n.reviews, "review")}, ${players}, ${plural(n.suggestions, "suggestion")}, `
+        + `${plural(n.clips, "clip")}, ${plural(n.admins, "admin")} and ${plural(n.stats, "stat counter")}.`, "ok");
+      loadAdmins();
+    } catch (err) {
+      setStatus(err.message, "err");
+    } finally {
+      button.disabled = false;
+    }
+  });
+
   $("#copy-key").addEventListener("click", async (e) => {
     try {
       await navigator.clipboard.writeText($("#new-key-value").textContent);

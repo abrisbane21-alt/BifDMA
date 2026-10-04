@@ -18,8 +18,8 @@ const BOARD_SIZE = 50;
 const DEFAULT_LIMIT = 20;
 const MAX_PER_SEC = 20;
 const MAX_WINDOW_MS = 60_000;
-const JOIN_CARRY_REDS = 1000;
-const JOIN_CARRY_PURPLES = 5;
+export const JOIN_CARRY_REDS = 1000;
+export const JOIN_CARRY_PURPLES = 5;
 const JOIN_COOLDOWN_MS = 2 * 60_000;
 const JOIN_COOLDOWN_TTL = 3600; // seconds the cooldown record is kept
 const NAME_PATTERN = /^[A-Za-z0-9 _.-]{2,20}$/;
@@ -202,6 +202,17 @@ async function editBoard(store, change) {
   return null;
 }
 
+// Rebuilds the board from every player record (used after importing old data).
+export async function rebuildBoard(store) {
+  const { blobs } = await store.list({ prefix: "player/" });
+  const players = (await store.getMany(blobs.map((b) => b.key))).filter(Boolean);
+  const top = players
+    .map((p) => ({ id: p.id, name: p.name, reds: p.reds, purples: purplesOf(p), at: p.lastSyncAt || 0 }))
+    .sort(byScore)
+    .slice(0, BOARD_SIZE);
+  return editBoard(store, () => top);
+}
+
 async function readBoard(store) {
   return ((await store.get("board")) || { players: [] }).players;
 }
@@ -216,11 +227,11 @@ function rankOf(players, id) {
   return index === -1 ? null : index + 1;
 }
 
-function purplesOf(record) {
+export function purplesOf(record) {
   return record.purples ?? record.whites ?? 0;
 }
 
-function nameKey(name) {
+export function nameKey(name) {
   return `name/${hash(name.toLowerCase())}`;
 }
 

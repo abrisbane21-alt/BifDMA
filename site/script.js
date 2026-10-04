@@ -351,6 +351,7 @@
 
   /* ---------- Safe Simulator leaderboard (via /api/safe) ---------- */
   const PLAYER_KEY = "bifdma-safe-player";
+  const OLD_PLAYER_KEY = "bifdma-safe-old-player"; // kept when a name disappears, in case it comes back
   const boardForm = $("#board-form");
   const boardStatus = $("#board-status");
   const boardList = $("#board-list");
@@ -476,6 +477,13 @@
       });
       if (res.status === 401 || res.status === 404) {
         const oldName = player.name;
+        const confirmedReds = Math.max(0, safe.reds - player.pendingReds - batch.reds);
+        const confirmedPurples = Math.max(0, safe.purples - player.pendingPurples - batch.purples);
+        try {
+          localStorage.setItem(OLD_PLAYER_KEY, JSON.stringify({
+            id: player.id, token: player.token, name: player.name, seq: player.seq, reds: confirmedReds, purples: confirmedPurples,
+          }));
+        } catch { /* storage blocked */ }
         player = null;
         savePlayer();
         renderMe();
@@ -500,6 +508,42 @@
     }
   }
 
+  // If the board was reset and the old one later brought back, the key saved when the name
+  // disappeared gets the player their old name and score back, plus anything found since.
+  async function reclaimOldName(onlyName) {
+    let old = null;
+    try { old = JSON.parse(localStorage.getItem(OLD_PLAYER_KEY)); } catch { /* storage blocked */ }
+    if (player || !old || !/^[a-f0-9]{16}$/.test(old.id) || typeof old.token !== "string") return false;
+    if (onlyName && onlyName.toLowerCase() !== String(old.name).toLowerCase()) return false;
+    const seq = (Number.isSafeInteger(old.seq) && old.seq > 0 ? old.seq : 0) + 1;
+    try {
+      const res = await fetch("/api/safe", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "sync", id: old.id, token: old.token, seq, reds: 0, purples: 0 }),
+      });
+      if (!res.ok || player) return false;
+      const out = await res.json();
+      const since = (now, then) => (Number.isSafeInteger(then) ? Math.max(0, now - then) : 0);
+      player = {
+        id: old.id, token: old.token, name: old.name, seq, inflight: null,
+        pendingReds: since(safe.reds, old.reds), pendingPurples: since(safe.purples, old.purples),
+      };
+      savePlayer();
+      try { localStorage.removeItem(OLD_PLAYER_KEY); } catch { /* storage blocked */ }
+      matchServer(out);
+      myScore = out.reds;
+      myRank = out.rank;
+      renderMe();
+      setBoardStatus(`Welcome back, ${old.name}. Your old score is back on the board.`, "ok");
+      queueSync();
+      loadBoard();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   boardForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const name = boardForm.elements.name.value.trim();
@@ -517,6 +561,7 @@
         body: JSON.stringify({ action: "join", name, reds: safe.reds, purples: safe.purples, website: boardForm.elements.website.value }),
       });
       const out = await res.json().catch(() => ({}));
+      if (res.status === 409 && (await reclaimOldName(name))) return;
       if (!res.ok) throw new Error(out.error || "Couldn't join right now. Try again in a bit.");
       player = { id: out.id, token: out.token, name: out.name, pendingReds: 0, pendingPurples: 0, seq: 0, inflight: null };
       savePlayer();
@@ -544,6 +589,7 @@
   renderMe();
   loadBoard();
   if (player) syncNow(false, true);
+  else reclaimOldName();
   setInterval(() => { if (!document.hidden) loadBoard(); }, BOARD_REFRESH_MS);
 
   /* ---------- Fake "recent purchase" toasts ---------- */
